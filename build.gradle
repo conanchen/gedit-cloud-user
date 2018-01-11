@@ -81,4 +81,25 @@ dependencies {
         exclude group: 'org.slf4j', module: 'log4j-over-slf4j'
     }
     testCompile('org.springframework.boot:spring-boot-starter-test')
+
+    // JPA Data (We are going to use Repositories, Entities, Hibernate, etc...)
+    compile ('org.springframework.boot:spring-boot-starter-data-jpa') {
+        force true
+        exclude group: 'org.apache.tomcat',module: 'tomcat-jdbc'
+    }
+
+    // Use MySQL Connector-J
+    compile 'mysql:mysql-connector-java'
+
+    // lombok
+    compileOnly 'org.projectlombok:lombok:1.16.18'
+
+    // hikari
+    compile 'com.zaxxer:HikariCP:2.7.4'
+
+    // jwt
+    compile 'io.jsonwebtoken:jjwt:0.9.0'
+
+    //validation
+    compile 'com.martiansoftware:hope-and-doubt:0.1.0'
 }

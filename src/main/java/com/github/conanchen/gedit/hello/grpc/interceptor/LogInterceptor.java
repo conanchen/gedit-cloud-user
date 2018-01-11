@@ -1,17 +1,18 @@
-package com.github.conanchen.gedit.hello.grpc;
+package com.github.conanchen.gedit.hello.grpc.interceptor;
 
 import com.google.gson.Gson;
 import io.grpc.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
+import lombok.extern.slf4j.Slf4j;
+import org.lognet.springboot.grpc.GRpcGlobalInterceptor;
+import org.springframework.core.annotation.Order;
 
 /**
  * Created by conanchen on 9/7/16.
  */
-@Component
+@Slf4j
+@Order(10)
+@GRpcGlobalInterceptor
 public class LogInterceptor implements ServerInterceptor {
-    private static final Logger log = LoggerFactory.getLogger(LogInterceptor.class);
     private static final Gson gson = new Gson();
 
     @Override

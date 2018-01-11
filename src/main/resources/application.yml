@@ -1,0 +1,53 @@
+org:
+  springframework:
+    boot:
+      autoconfigure:
+        EnableAutoConfiguration: org.ditto.easyhan.config.SpringConfig
+
+gedit:
+  docker:
+    enabled: false
+    cloud:
+      config:
+        server:
+          git:
+            uri:
+            clone-on-start: true
+security:
+  basic:
+    enabled:
+      false
+management:
+  security:
+    enabled: false
+grpc:
+  port: 8980
+server:
+  port: 8088
+spring:
+  profiles:
+    active: dev
+  jpa:
+    database: mysql
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    generate-ddl: true
+    properties:
+      hibernate: dialect:org.hibernate.dialect.MySQL5Dialect
+  data:
+    jpa:
+      repositories:
+        enabled: true
+  # 数据库配置
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    type: com.zaxxer.hikari.HikariDataSource
+    name: hikari
+    # 下面为连接池的补充设置，应用到上面所有数据源中
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 60000
+      connection-test-query: select 1 from dual
+      pool-name: gedit_store
