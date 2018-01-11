@@ -1,4 +1,4 @@
-package com.github.conanchen.gedit.hello;
+package com.github.conanchen.gedit.user;
 
 
 import org.springframework.boot.SpringApplication;
@@ -8,15 +8,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.web.client.RestTemplate;
 
 @SpringBootApplication
-public class CloudHelloApplication {
+public class CloudUserApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(CloudHelloApplication.class, args);
+		SpringApplication.run(CloudUserApplication.class, args);
 	}
 
-    @Bean
-    public RestTemplate restTemplate(RestTemplateBuilder builder) {
+    /*@Bean
+    public RestTemplate restTemplate() {
+        RestTemplateBuilder
         return builder.build();
-    }
+    }*/
 
 }

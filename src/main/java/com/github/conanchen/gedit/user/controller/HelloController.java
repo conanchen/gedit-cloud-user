@@ -1,4 +1,4 @@
-package com.github.conanchen.gedit.hello.controller;
+package com.github.conanchen.gedit.user.controller;
 
 import com.google.gson.Gson;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -11,13 +11,12 @@ import java.util.Date;
 @RestController
 @EnableAutoConfiguration
 public class HelloController {
-    private final static Gson gson = new Gson();
-//
-//    @Autowired
-//    private WordRepository wordRepository;
-
     @RequestMapping(value = "/hello")
     public String hello() {
         return "hello@" + DateFormat.getInstance().format(new Date()) + ", HelloController Spring Boot ";
+    }
+    @RequestMapping(value = "/")
+    public Date index() {
+        return new Date();
     }
 }

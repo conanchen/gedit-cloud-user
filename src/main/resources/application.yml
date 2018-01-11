@@ -21,9 +21,9 @@ management:
   security:
     enabled: false
 grpc:
-  port: 8980
+  port: 9980
 server:
-  port: 8088
+  port: 9089
 spring:
   profiles:
     active: dev
@@ -51,3 +51,43 @@ spring:
       connection-timeout: 60000
       connection-test-query: select 1 from dual
       pool-name: gedit_store
+httpclient:
+  pool:
+    sync:
+      #对每个指定连接的服务器（指定的ip）可以创建并发5 socket进行访问
+      max-conn-per-route: 5
+      #创建socket的上线是10
+      max-conn-total: 10
+    async:
+      #对每个指定连接的服务器（指定的ip）可以创建并发5 socket进行访问
+      max-conn-per-route: 5
+      #创建socket的上线是10
+      max-conn-total: 10
+  request:
+    sync:
+      connection-request-timeout: 3000
+      connect-timeout: 3000
+      read-timeout: 3000
+    async:
+      connection-request-timeout: 5000
+      connect-timeout: 5000
+      read-timeout: 5000
+... #end tag
+--- #file split
+spring:
+  profiles: dev
+  datasource:
+    url: jdbc:mysql://192.168.1.200:3306/gedit_user?useSSL=false
+    hikari:
+      username: root
+      password: Qizhidao!123456
+...
+---
+spring:
+  profiles: test
+  datasource:
+    url: jdbc:mysql://localhost:3306/gedit_user?useSSL=false
+    hikari:
+      username: root
+      password:
+...

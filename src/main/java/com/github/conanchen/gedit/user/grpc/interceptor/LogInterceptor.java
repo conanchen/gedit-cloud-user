@@ -1,4 +1,4 @@
-package com.github.conanchen.gedit.hello.grpc.interceptor;
+package com.github.conanchen.gedit.user.grpc.interceptor;
 
 import com.google.gson.Gson;
 import io.grpc.*;

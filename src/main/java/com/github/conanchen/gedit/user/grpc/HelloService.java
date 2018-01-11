@@ -1,7 +1,10 @@
-package com.github.conanchen.gedit.hello.grpc;
+package com.github.conanchen.gedit.user.grpc;
 
 import com.github.conanchen.gedit.common.grpc.Status;
-import com.github.conanchen.gedit.hello.grpc.interceptor.LogInterceptor;
+import com.github.conanchen.gedit.hello.grpc.HelloGrpc;
+import com.github.conanchen.gedit.hello.grpc.HelloReply;
+import com.github.conanchen.gedit.hello.grpc.HelloRequest;
+import com.github.conanchen.gedit.user.grpc.interceptor.LogInterceptor;
 import com.google.gson.Gson;
 import io.grpc.stub.StreamObserver;
 import org.lognet.springboot.grpc.GRpcService;
