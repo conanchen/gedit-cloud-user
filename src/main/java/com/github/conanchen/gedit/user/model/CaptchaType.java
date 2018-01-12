@@ -28,7 +28,7 @@ public class CaptchaType implements Serializable {
     private Boolean active;
 
     @Column(columnDefinition = "varchar(20)")
-    private String imgName;
+    private String name;
 
     @Column(columnDefinition = "datetime")
     private Date createDate;

@@ -28,7 +28,7 @@ public class CaptchaImg {
     private String typeUuid;
 
     @Column(columnDefinition = "varchar(255)")
-    private String imgUrl;
+    private String url;
 
     @Column(columnDefinition = "datetime")
     private Date createDate;

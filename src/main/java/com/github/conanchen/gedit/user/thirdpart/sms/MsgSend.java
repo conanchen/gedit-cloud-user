@@ -30,7 +30,7 @@ public class MsgSend {
     private RestTemplate restTemplate;
 
 
-    public boolean sendCode(String phone) throws IOException {
+    public boolean sendCode(String phone) {
         String tempId= smsApi.getRegTempId();
         String url = smsApi.getCode_url();
         Map<String,Object> map = new HashMap<>();
@@ -50,7 +50,7 @@ public class MsgSend {
         Map<String,Object> map = new HashMap<>();
         map.put("mobile",phone);
         map.put("code",code);
-       return post("短信验证",url,map);
+        return post("短信验证",url,map);
     }
 
 
@@ -63,7 +63,7 @@ public class MsgSend {
             if (resp.getCode() == HttpStatus.OK.value()){
                 return true;
             }
-        }catch (RuntimeException e){
+        }catch (Exception e){
             log.info("{}发生异常",msg,e);
         }
         return false;

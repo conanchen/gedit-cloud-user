@@ -78,9 +78,8 @@ dependencies {
         exclude group: 'org.slf4j', module: 'log4j-over-slf4j'
         exclude group: 'com.fasterxml.jackson.core',module: 'jackson-databind'
     }
-    compile("org.springframework.boot:spring-boot-starter-actuator") {
-        exclude group: 'org.slf4j', module: 'log4j-over-slf4j'
-    }
+    compile 'org.springframework.boot:spring-boot-starter-actuator'
+
     testCompile('org.springframework.boot:spring-boot-starter-test')
 
     // JPA Data (We are going to use Repositories, Entities, Hibernate, etc...)
@@ -88,6 +87,9 @@ dependencies {
         force true
         exclude group: 'org.apache.tomcat',module: 'tomcat-jdbc'
     }
+
+    // redis
+    compile 'org.springframework.boot:spring-boot-starter-data-redis'
 
     // Use MySQL Connector-J
     compile 'mysql:mysql-connector-java'
