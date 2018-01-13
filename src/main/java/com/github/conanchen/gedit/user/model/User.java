@@ -6,10 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.util.Date;
 
 @Builder
@@ -23,8 +20,8 @@ public class User {
     @GenericGenerator(name = "uuid", strategy = "uuid")
     @Column(columnDefinition = "char(32)")
     private String uuid;
-
-    @Column(columnDefinition = "varchar(11)")
+    
+    @Column(columnDefinition = "varchar(11)",unique = true)
     private String mobile;
 
     @Column(columnDefinition = "varchar(255)")
