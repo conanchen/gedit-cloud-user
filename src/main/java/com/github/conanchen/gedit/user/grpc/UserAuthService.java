@@ -22,9 +22,7 @@ import java.security.Key;
 import java.time.*;
 import java.util.Date;
 
-import static io.grpc.Status.Code.ALREADY_EXISTS;
-import static io.grpc.Status.Code.FAILED_PRECONDITION;
-import static io.grpc.Status.Code.OK;
+import static io.grpc.Status.Code.*;
 
 @GRpcService(applyGlobalInterceptors = false,interceptors = {LogInterceptor.class})
 public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
@@ -52,7 +50,30 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
 
     @Override
     public void signinWithPassword(SigninWithPasswordRequest request, StreamObserver<SigninResponse> responseObserver) {
-
+        SigninResponse.Builder builder = SigninResponse.newBuilder();
+        User user = userRepository.findByMobile(request.getMobile());
+        if (!user.getActive()){
+            Status status = Status.newBuilder()
+                    .setCode(String.valueOf(FAILED_PRECONDITION.value()))
+                    .setDetails("账户被禁用")
+                    .build();
+            builder.setStatus(status);
+        }
+        if (DigestUtils.sha256Hex(request.getPassword()).equals(user.getPassword())){
+            Status status = Status.newBuilder()
+                    .setCode(String.valueOf(OK.value()))
+                    .setDetails("登录成功")
+                    .build();
+            builder.setStatus(status);
+        }else{
+            Status status = Status.newBuilder()
+                    .setCode(String.valueOf(INVALID_ARGUMENT.value()))
+                    .setDetails("登录成功")
+                    .build();
+            builder.setStatus(status);
+        }
+        responseObserver.onNext(builder.build());
+        responseObserver.onCompleted();
     }
 
     @Override

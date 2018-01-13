@@ -121,6 +121,9 @@ public class CaptchaService {
         com.google.protobuf.ProtocolStringList requestQuestionUuidList = request.getQuestionUuidList();
         BoundValueOperations<String,List<String>> boundValueOperations =  redisTemplate.boundValueOps("captcha_img_ids_" + request.getToken());
         List<String> listIds = boundValueOperations.get();
+        if (listIds == null){
+            new StatusRuntimeException(Status.DEADLINE_EXCEEDED.withDescription("验证超时"));
+        }
         if (equals(listIds,requestQuestionUuidList)) {
             if (isProduct) {
                 if (msgSend.sendCode(request.getMobile())) {

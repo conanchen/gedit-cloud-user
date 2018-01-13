@@ -9,4 +9,6 @@ public interface UserRepository<String extends Serializable> extends JpaReposito
     long countByMobile(String mobile);
 
     boolean existsByMobile(String mobile);
+
+    User findByMobile(String mobile);
 }
