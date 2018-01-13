@@ -1,9 +1,6 @@
 package com.github.conanchen.gedit.user.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
@@ -20,7 +17,7 @@ public class User {
     @GenericGenerator(name = "uuid", strategy = "uuid")
     @Column(columnDefinition = "char(32)")
     private String uuid;
-    
+
     @Column(columnDefinition = "varchar(11)",unique = true)
     private String mobile;
 
@@ -40,7 +37,8 @@ public class User {
     @Column(columnDefinition = "varchar(64)")
     private String wechat;
 
-    @Column(columnDefinition = "tinyint(1)")
+    @Column(columnDefinition = "tinyint(1)",nullable = false)
+    @NonNull
     private Boolean active;
 
     @Column(columnDefinition = "varchar(255)")

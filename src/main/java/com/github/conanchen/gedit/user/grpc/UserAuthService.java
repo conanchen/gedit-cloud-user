@@ -7,6 +7,7 @@ import com.github.conanchen.gedit.user.model.User;
 import com.github.conanchen.gedit.user.repository.UserRepository;
 import com.github.conanchen.gedit.user.service.CaptchaService;
 import com.github.conanchen.gedit.user.thirdpart.sms.MsgSend;
+import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import io.jsonwebtoken.CompressionCodecs;
 import io.jsonwebtoken.Jwts;
@@ -98,8 +99,12 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
 
     @Override
     public void registerSmsStep2Answer(SmsStep2AnswerRequest request, StreamObserver<SmsStep2AnswerResponse> responseObserver) {
-        responseObserver.onNext(captchaService.verifyRegister(request));
-        responseObserver.onCompleted();
+        try{
+            responseObserver.onNext(captchaService.verifyRegister(request));
+            responseObserver.onCompleted();
+        }catch (StatusRuntimeException e){
+            responseObserver.onError(e);
+        }
     }
 
     @Override

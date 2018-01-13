@@ -8,7 +8,7 @@ import java.io.Serializable;
 import java.util.List;
 
 public interface CaptchaTypeRepository extends JpaRepository<CaptchaType,Long> {
-    long countByActive(boolean active);
+    long countByActiveIsTrue();
 
-    List<CaptchaType> findByActive(boolean active, Pageable pageable);
+    List<CaptchaType> findByActiveIsTrue(Pageable pageable);
 }

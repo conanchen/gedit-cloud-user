@@ -17,10 +17,10 @@ import java.util.Date;
 public class CaptchaImg {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long uuid;
+    private Long id;
 
-    @Column(columnDefinition = "char(32)")
-    private String typeUuid;
+    @Column(columnDefinition = "bigint(20)")
+    private Long typeId;
 
     @Column(columnDefinition = "varchar(255)")
     private String url;

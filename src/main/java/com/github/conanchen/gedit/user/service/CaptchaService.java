@@ -56,34 +56,34 @@ public class CaptchaService {
     }
 
     private CaptchaResult userDB(){
-        long count = captchaTypeRepository.countByActive(true);
+        long count = captchaTypeRepository.countByActiveIsTrue();
         if (count < 1){
             return null;
         }
         Random random = new Random();
         long rand = random.longs(1L,count + 1).limit(1).findFirst().getAsLong();
-        List<CaptchaType> types = captchaTypeRepository.findByActive(true,new OffsetBasedPageRequest((int)rand -1,1));
-        while (types.isEmpty()){
-            types = captchaTypeRepository.findByActive(true,new OffsetBasedPageRequest(0,1));
+        List<CaptchaType> types = captchaTypeRepository.findByActiveIsTrue(new OffsetBasedPageRequest((int)rand -1,1));
+        if (types.isEmpty()){
+            types = captchaTypeRepository.findByActiveIsTrue(new OffsetBasedPageRequest(0,1));
         }
         CaptchaType type = types.get(0);
-        long countImgs = captchaImgRepository.countByTypeUuid(type.getUuid());
+        long countImgs = captchaImgRepository.countByTypeId(type.getId());
         long randImg = random.longs(1,countImgs + 1).limit(1).findFirst().getAsLong();
         int randCount = random.ints(1,7).limit(1).findFirst().getAsInt();
-        List<CaptchaImg> captchaImgList = captchaImgRepository.findByTypeUuid(type.getUuid(),new OffsetBasedPageRequest((int)randImg - 1,randCount));
-        List<String> ids = EntityUtils.createFieldList(captchaImgList, "uuid");
+        List<CaptchaImg> captchaImgList = captchaImgRepository.findByTypeId(type.getId(),new OffsetBasedPageRequest((int)randImg - 1,randCount));
+        List<Long> ids = EntityUtils.createFieldList(captchaImgList, "id");
         String verifyId = UUID.randomUUID().toString();
         //redis operation
-        BoundValueOperations<String,List<String>> boundValueOperations =  redisTemplate.boundValueOps("captcha_img_ids_" + verifyId);
+        BoundValueOperations<String,List<Long>> boundValueOperations =  redisTemplate.boundValueOps("captcha_img_ids_" + verifyId);
         boundValueOperations.set(ids,expireMinutes, TimeUnit.MINUTES);
 
         if (captchaImgList.size() < 6){
-           long countAllImgs =  captchaImgRepository.countByTypeUuidNot(type.getUuid());
+           long countAllImgs =  captchaImgRepository.countByTypeIdNot(type.getId());
            long ranImgAll =  random.longs(1,countAllImgs + 1).limit(1).findFirst().getAsLong();
            int limit = 6 - captchaImgList.size();
            long left = countAllImgs - ranImgAll;
            int offset = Long.compare(left,limit) < 0 ? (int)(left - 1): (int)(countAllImgs - 7L);
-           List<CaptchaImg> others = captchaImgRepository.findByTypeUuidNot(type.getUuid(),new OffsetBasedPageRequest(offset ,limit));
+           List<CaptchaImg> others = captchaImgRepository.findByTypeIdNot(type.getId(),new OffsetBasedPageRequest(offset ,limit));
            captchaImgList.addAll(others);
         }
         Collections.shuffle(captchaImgList);
@@ -96,7 +96,7 @@ public class CaptchaService {
         }
         List<Question> questions = new ArrayList<>(result.getImgs().size());
         for (CaptchaImg captchaImg : result.getImgs()){
-            Question  question = Question.newBuilder().setUuid(String.valueOf(captchaImg.getUuid())).setImage(captchaImg.getUrl()).build();
+            Question  question = Question.newBuilder().setUuid(String.valueOf(captchaImg.getId())).setImage(captchaImg.getUrl()).build();
             questions.add(question);
         }
         return SmsStep1QuestionResponse.newBuilder().setQuestionTip(result.getTip()).setToken(result.getToken()).addAllQuestion(questions).build();
@@ -104,23 +104,23 @@ public class CaptchaService {
     public SmsStep2AnswerResponse verifyResetPassword(SmsStep2AnswerRequest request){
         boolean exists = userRepository.existsByMobile(request.getMobile());
         if ( exists){
-            throw new StatusRuntimeException(Status.ALREADY_EXISTS.withDescription("用户已注册,如忘记密码请重置"));
+            throw new StatusRuntimeException(Status.ALREADY_EXISTS.withDescription("用户未注册,请返回注册"));
         }
         return verify(request);
     }
 
     public SmsStep2AnswerResponse verifyRegister(SmsStep2AnswerRequest request){
         boolean exists = userRepository.existsByMobile(request.getMobile());
-        if ( !exists){
-            throw new StatusRuntimeException(Status.FAILED_PRECONDITION.withDescription("用户未注册,请返回注册"));
+        if ( exists){
+            throw new StatusRuntimeException(Status.FAILED_PRECONDITION.withDescription("用户已注册,如忘记密码请重置"));
         }
         return verify(request);
     }
 
     private SmsStep2AnswerResponse verify(SmsStep2AnswerRequest request){
         com.google.protobuf.ProtocolStringList requestQuestionUuidList = request.getQuestionUuidList();
-        BoundValueOperations<String,List<String>> boundValueOperations =  redisTemplate.boundValueOps("captcha_img_ids_" + request.getToken());
-        List<String> listIds = boundValueOperations.get();
+        BoundValueOperations<String,List<Long>> boundValueOperations =  redisTemplate.boundValueOps("captcha_img_ids_" + request.getToken());
+        List<Long> listIds = boundValueOperations.get();
         if (listIds == null){
             new StatusRuntimeException(Status.DEADLINE_EXCEEDED.withDescription("验证超时"));
         }
@@ -134,17 +134,21 @@ public class CaptchaService {
                 }
             }
         }
-        return SmsStep2AnswerResponse.newBuilder().setStatus(com.github.conanchen.gedit.common.grpc.Status.newBuilder().setCode(String.valueOf(Status.OK.getCode().value()))).build();
+        return SmsStep2AnswerResponse.newBuilder()
+                .setStatus(com.github.conanchen.gedit.common.grpc.Status.newBuilder()
+                        .setCode(String.valueOf(Status.OK.getCode().value()))
+                        .setDetails("success"))
+                .build();
     }
 
-    private boolean equals(List<String> list, com.google.protobuf.ProtocolStringList requestQuestionUuidList){
+    private boolean equals(List<Long> list, com.google.protobuf.ProtocolStringList requestQuestionUuidList){
         try {
             if (!CollectionUtils.isEmpty(list)){
                 if (list.size() == requestQuestionUuidList.size()) {
                     int right = 0;
-                    for (String id : list) {
+                    for (Long id : list) {
                         for (int index = 0; index < requestQuestionUuidList.size();index++) {
-                            if (id.equals(requestQuestionUuidList.get(index))) {
+                            if (String.valueOf(id).equals(requestQuestionUuidList.get(index))) {
                                 right ++;
                                 break;
                             }

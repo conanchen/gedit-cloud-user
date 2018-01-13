@@ -17,7 +17,7 @@ import java.util.Date;
 public class CaptchaType implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long uuid;
+    private Long id;
 
     @Column(columnDefinition = "tinyint(1)")
     private Boolean active;

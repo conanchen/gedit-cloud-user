@@ -1,13 +1,13 @@
 package com.github.conanchen.gedit.client;
 
+import com.fasterxml.jackson.databind.util.ArrayIterator;
 import com.github.conanchen.gedit.user.CloudUserApplication;
-import com.github.conanchen.gedit.user.auth.grpc.SigninResponse;
-import com.github.conanchen.gedit.user.auth.grpc.SmsStep3RegisterRequest;
-import com.github.conanchen.gedit.user.auth.grpc.UserAuthApiGrpc;
+import com.github.conanchen.gedit.user.auth.grpc.*;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,6 +17,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.text.DateFormat;
+import java.util.List;
+
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = CloudUserApplication.class)
 public class TestClient {
@@ -31,8 +33,41 @@ public class TestClient {
                 .build();
         blockingStub = UserAuthApiGrpc.newBlockingStub(channel);
     }
+
     @Test
-    public void testRegister(){
+    public void testRegister1(){
+        SmsStep1QuestionResponse response = blockingStub.registerSmsStep1Question(SmsStep1QuestionRequest.newBuilder()
+                .build()
+        );
+        log.info(gson.toJson(response));
+    }
+    @Test
+    public void testRegister2(){
+        SmsStep1QuestionResponse response1 = blockingStub.registerSmsStep1Question(SmsStep1QuestionRequest.newBuilder()
+                .build()
+        );
+        log.info(gson.toJson(response1));
+        Assert.assertNotEquals(response1,null);
+        List<Question> questions = response1.getQuestionList();
+        String[] uuidsArray = new String[3];
+        int i = 0;
+        for (Question question : questions){
+            uuidsArray[i++] = question.getUuid();
+            if (i == 3){
+                break;
+            }
+        }
+        Iterable<String> uuids = new ArrayIterator<>(uuidsArray);
+        SmsStep2AnswerResponse response2 = blockingStub.registerSmsStep2Answer(SmsStep2AnswerRequest.newBuilder()
+                .setMobile("15281718791")
+                .setToken(response1.getToken())
+                .addAllQuestionUuid(uuids)
+                .build()
+        );
+        log.info(gson.toJson(response2));
+    }
+    @Test
+    public void testRegisterStep3(){
         SigninResponse response = blockingStub.registerSmsStep3Signin(SmsStep3RegisterRequest.newBuilder()
                 .setMobile("15281718792")
                 .setPassword("123456")
@@ -41,4 +76,5 @@ public class TestClient {
         );
         log.info(gson.toJson(response));
     }
+
 }

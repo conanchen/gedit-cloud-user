@@ -7,11 +7,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface CaptchaImgRepository extends JpaRepository<CaptchaImg, Long> {
-    long countByTypeUuid(Long uuid);
+    long countByTypeId(Long typeId);
 
-    List<CaptchaImg> findByTypeUuid(Long uuid, Pageable pageable);
+    List<CaptchaImg> findByTypeId(Long typeId, Pageable pageable);
 
-    long countByTypeUuidNot(Long uuid);
+    long countByTypeIdNot(Long typeId);
 
-    List<CaptchaImg> findByTypeUuidNot(Long uuid, Pageable pageable);
+    List<CaptchaImg> findByTypeIdNot(Long typeId, Pageable pageable);
 }
