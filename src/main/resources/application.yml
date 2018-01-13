@@ -90,8 +90,9 @@ captcha:
     minutes: 5
 jjwt:
   expire:
-    minutes:
-      10080 #7 days expire
+    minutes: 10080 #7 days expire
+  sigin:
+    key: shuai
 ... #end tag
 --- #file split
 spring:

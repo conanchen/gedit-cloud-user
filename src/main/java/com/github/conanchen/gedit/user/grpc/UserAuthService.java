@@ -2,6 +2,7 @@ package com.github.conanchen.gedit.user.grpc;
 
 import com.github.conanchen.gedit.common.grpc.Status;
 import com.github.conanchen.gedit.user.auth.grpc.*;
+import com.github.conanchen.gedit.user.grpc.interceptor.AuthInterceptor;
 import com.github.conanchen.gedit.user.grpc.interceptor.LogInterceptor;
 import com.github.conanchen.gedit.user.model.User;
 import com.github.conanchen.gedit.user.repository.UserRepository;
@@ -19,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
 
+import javax.crypto.SecretKey;
 import java.security.Key;
 import java.time.*;
 import java.util.Date;
@@ -27,9 +29,11 @@ import static io.grpc.Status.Code.*;
 
 @GRpcService(applyGlobalInterceptors = false,interceptors = {LogInterceptor.class})
 public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
-    private static final Key key = MacProvider.generateKey();
     @Value("${jjwt.expire.minutes:5}")
     private Long expiredInMinutes;
+    @Value("${jjwt.sigin.key:shuai}")
+    private String signinKey;
+
     @Autowired
     private CaptchaService captchaService;
     @Autowired
@@ -123,20 +127,14 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
                 userRepository.save(user);
                 //calc expire time
                 Date date = expireDate();
-                //jwt token generate
-                String compactJws =  Jwts.builder()
-                        .setSubject(user.getUuid())
-                        .compressWith(CompressionCodecs.GZIP)
-                        .signWith(SignatureAlgorithm.HS512, key)
-                        .setExpiration(date)
-                        .compact();
+                String compactJws = generate(user.getUuid(),now,date);;
                 Status status = Status.newBuilder()
                         .setCode(String.valueOf(OK.value()))
                         .setDetails("注册成功")
                         .build();
                 builder.setStatus(status)
                         .setExpiresIn(String.valueOf(date.getTime()))
-                        .setAccessToken(compactJws);
+                        .setAccessToken(AuthInterceptor.AUTHENTICATION_SCHEME + compactJws);
             }else{
                 Status status = Status.newBuilder()
                         .setCode(String.valueOf(FAILED_PRECONDITION.value()))
@@ -154,7 +152,16 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
         responseObserver.onNext(builder.build());
         responseObserver.onCompleted();
     }
-
+    private String generate(String uuid,Date issuedAt,Date expiredDate){
+        return Jwts.builder()
+                .setHeaderParam("typ", "JWT")
+                .setIssuedAt(new Date()) // need create login record
+                .setSubject(uuid)
+                .compressWith(CompressionCodecs.GZIP)
+                .signWith(SignatureAlgorithm.HS512, signinKey)
+                .setExpiration(expiredDate)
+                .compact();
+    }
     private Date expireDate(){
         //time calc
         Instant now = Instant.now();

@@ -7,16 +7,24 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.jsonwebtoken.*;
+import io.jsonwebtoken.impl.crypto.MacProvider;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import javax.crypto.SecretKey;
+import java.security.Key;
 import java.text.DateFormat;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Date;
 import java.util.List;
 
 @RunWith(SpringRunner.class)
@@ -25,7 +33,8 @@ public class TestClient {
     private static final Logger log = LoggerFactory.getLogger(TestClient.class);
     private static final Gson gson = new GsonBuilder().setDateFormat(DateFormat.MILLISECOND_FIELD).setPrettyPrinting().create();
     private UserAuthApiGrpc.UserAuthApiBlockingStub blockingStub;
-
+    @Value("${jjwt.expire.minutes:5}")
+    private Long expiredInMinutes;
     @Before
     public void init(){
         ManagedChannel channel = ManagedChannelBuilder.forAddress("127.0.0.1",9980)
@@ -77,4 +86,41 @@ public class TestClient {
         log.info(gson.toJson(response));
     }
 
+    @Test
+    public void testSignIn(){
+        SigninResponse response = blockingStub.signinWithPassword(SigninWithPasswordRequest.newBuilder()
+                .setMobile("15281718791")
+                .setPassword("123456")
+                .build()
+        );
+        log.info(gson.toJson(response));
+    }
+    @Test
+    public void testJJwt(){
+        String compactJws =  Jwts.builder()
+                .setIssuedAt(new Date()) //need create  login record
+                .setSubject("1")
+                .compressWith(CompressionCodecs.GZIP)
+                .signWith(SignatureAlgorithm.HS512, "fwefwefew")
+                .setExpiration(expireDate())
+                .compact();
+        Jws<Claims> claimsJwt = Jwts.parser().setSigningKey("fwefwefew").parseClaimsJws(compactJws);
+        Assert.assertEquals(claimsJwt.getBody().getSubject(),"1");
+    }
+    @Test
+    public void testJJwtSample(){
+        Key key = MacProvider.generateKey();
+
+        String compactJws = Jwts.builder()
+                .setSubject("Joe")
+                .signWith(SignatureAlgorithm.HS512, key)
+                .compact();
+        assert Jwts.parser().setSigningKey(key).parseClaimsJws(compactJws).getBody().getSubject().equals("Joe");
+    }
+    private Date expireDate(){
+        //time calc
+        Instant now = Instant.now();
+        Instant future = now.plus(Duration.ofMinutes(expiredInMinutes));
+        return  Date.from(future);
+    }
 }
