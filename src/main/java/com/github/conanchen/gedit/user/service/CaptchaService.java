@@ -45,7 +45,7 @@ public class CaptchaService {
     private MsgSend msgSend;
     @Value("${spring.profiles.active}")
     private String profile;
-    @Value("${captcha.expire.minute}")
+    @Value("${captcha.expire.minutes}")
     private Long expireMinutes;
 
     private boolean isProduct;
@@ -62,10 +62,11 @@ public class CaptchaService {
         }
         Random random = new Random();
         long rand = random.longs(1L,count + 1).limit(1).findFirst().getAsLong();
-        CaptchaType type = captchaTypeRepository.findByActive(true,new OffsetBasedPageRequest((int)rand -1,1));
-        while (type == null){
-            type = captchaTypeRepository.findByActive(true,new OffsetBasedPageRequest(0,1));
+        List<CaptchaType> types = captchaTypeRepository.findByActive(true,new OffsetBasedPageRequest((int)rand -1,1));
+        while (types.isEmpty()){
+            types = captchaTypeRepository.findByActive(true,new OffsetBasedPageRequest(0,1));
         }
+        CaptchaType type = types.get(0);
         long countImgs = captchaImgRepository.countByTypeUuid(type.getUuid());
         long randImg = random.longs(1,countImgs + 1).limit(1).findFirst().getAsLong();
         int randCount = random.ints(1,7).limit(1).findFirst().getAsInt();
@@ -95,7 +96,7 @@ public class CaptchaService {
         }
         List<Question> questions = new ArrayList<>(result.getImgs().size());
         for (CaptchaImg captchaImg : result.getImgs()){
-            Question  question = Question.newBuilder().setUuid(captchaImg.getUuid()).setImage(captchaImg.getUrl()).build();
+            Question  question = Question.newBuilder().setUuid(String.valueOf(captchaImg.getUuid())).setImage(captchaImg.getUrl()).build();
             questions.add(question);
         }
         return SmsStep1QuestionResponse.newBuilder().setQuestionTip(result.getTip()).setToken(result.getToken()).addAllQuestion(questions).build();
@@ -163,5 +164,9 @@ public class CaptchaService {
         private String tip;
         private String token;
         private List<CaptchaImg> imgs;
+    }
+
+    public boolean isProduct() {
+        return isProduct;
     }
 }

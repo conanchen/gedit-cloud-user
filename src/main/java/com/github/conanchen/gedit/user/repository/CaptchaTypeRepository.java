@@ -7,9 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.io.Serializable;
 import java.util.List;
 
-public interface CaptchaTypeRepository<String extends Serializable> extends JpaRepository<CaptchaType,String> {
+public interface CaptchaTypeRepository extends JpaRepository<CaptchaType,Long> {
     long countByActive(boolean active);
 
-    CaptchaType findByActive(boolean active, Pageable pageable);
-
+    List<CaptchaType> findByActive(boolean active, Pageable pageable);
 }

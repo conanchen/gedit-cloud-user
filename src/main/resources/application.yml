@@ -17,6 +17,10 @@ security:
   basic:
     enabled:
       false
+  oauth2:
+    resource:
+      jwt:
+        key-uri:
 management:
   security:
     enabled: false
@@ -83,7 +87,11 @@ httpclient:
       read-timeout: 5000
 captcha:
   expire:
-    minute: 5
+    minutes: 5
+jjwt:
+  expire:
+    minutes:
+      10080 #7 days expire
 ... #end tag
 --- #file split
 spring:

@@ -6,10 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
 @Builder
@@ -19,10 +16,8 @@ import java.util.Date;
 @Entity
 public class CaptchaType implements Serializable {
     @Id
-    @GeneratedValue(generator = "uuid")
-    @GenericGenerator(name = "uuid", strategy = "uuid")
-    @Column(columnDefinition = "char(32)")
-    private String uuid;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long uuid;
 
     @Column(columnDefinition = "tinyint(1)")
     private Boolean active;
@@ -31,5 +26,5 @@ public class CaptchaType implements Serializable {
     private String name;
 
     @Column(columnDefinition = "datetime")
-    private Date createDate;
+    private Date createdDate;
 }
