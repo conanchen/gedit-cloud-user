@@ -33,7 +33,8 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
     private Long expiredInMinutes;
     @Value("${jjwt.sigin.key:shuai}")
     private String signinKey;
-
+    @Value("${sms.active:false}")
+    private Boolean smsActive;
     @Autowired
     private CaptchaService captchaService;
     @Autowired
@@ -115,7 +116,7 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
     public void registerSmsStep3Signin(SmsStep3RegisterRequest request, StreamObserver<SigninResponse> responseObserver) {
         SigninResponse.Builder builder = SigninResponse.newBuilder();
         try {
-            if (captchaService.isProduct() == false || msgSend.verify(request.getMobile(),request.getSmscode())){
+            if (!smsActive || msgSend.verify(request.getMobile(),request.getSmscode())){
                 Date now = new Date();
                 User user = User.builder()
                         .active(true)
@@ -155,7 +156,7 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
     private String generate(String uuid,Date issuedAt,Date expiredDate){
         return Jwts.builder()
                 .setHeaderParam("typ", "JWT")
-                .setIssuedAt(new Date()) // need create login record
+                .setIssuedAt(issuedAt) // need create login record
                 .setSubject(uuid)
                 .compressWith(CompressionCodecs.GZIP)
                 .signWith(SignatureAlgorithm.HS512, signinKey)

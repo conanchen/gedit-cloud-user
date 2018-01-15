@@ -30,7 +30,7 @@ server:
   port: 9089
 spring:
   profiles:
-    active: dev
+    active: test
   jpa:
     database: mysql
     show-sql: true
@@ -54,7 +54,7 @@ spring:
       minimum-idle: 5
       connection-timeout: 60000
       connection-test-query: select 1 from dual
-      pool-name: gedit_store
+      pool-name: gedit_user
   # REDIS (RedisProperties)
   redis:
     database: 9
@@ -88,6 +88,8 @@ httpclient:
 captcha:
   expire:
     minutes: 5
+sms:
+  active: false
 jjwt:
   expire:
     minutes: 10080 #7 days expire

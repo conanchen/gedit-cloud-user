@@ -43,17 +43,10 @@ public class CaptchaService {
     private RedisTemplate redisTemplate;
     @Autowired
     private MsgSend msgSend;
-    @Value("${spring.profiles.active}")
-    private String profile;
+    @Value("${sms.active:false}")
+    private Boolean smsActive;
     @Value("${captcha.expire.minutes}")
     private Long expireMinutes;
-
-    private boolean isProduct;
-
-    @PostConstruct
-    public void init(){
-        isProduct = product.equals(profile);
-    }
 
     private CaptchaResult userDB(){
         long count = captchaTypeRepository.countByActiveIsTrue();
@@ -125,7 +118,7 @@ public class CaptchaService {
             new StatusRuntimeException(Status.DEADLINE_EXCEEDED.withDescription("验证超时"));
         }
         if (equals(listIds,requestQuestionUuidList)) {
-            if (isProduct) {
+            if (smsActive) {
                 if (msgSend.sendCode(request.getMobile())) {
                     log.info("验证码发送成功：{}", request.getMobile());
                 }else{
@@ -171,9 +164,5 @@ public class CaptchaService {
         private String tip;
         private String token;
         private List<CaptchaImg> imgs;
-    }
-
-    public boolean isProduct() {
-        return isProduct;
     }
 }
