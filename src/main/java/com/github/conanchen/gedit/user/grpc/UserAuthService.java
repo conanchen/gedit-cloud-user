@@ -74,7 +74,7 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
         }else{
             Status status = Status.newBuilder()
                     .setCode(String.valueOf(INVALID_ARGUMENT.value()))
-                    .setDetails("登录成功")
+                    .setDetails("用户名或密码错误")
                     .build();
             builder.setStatus(status);
         }
