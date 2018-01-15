@@ -2,14 +2,14 @@ package com.github.conanchen.gedit.user.grpc.interceptor;
 
 import com.google.gson.Gson;
 import io.grpc.*;
-import io.jsonwebtoken.*;
-import io.jsonwebtoken.impl.crypto.MacProvider;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
 import lombok.extern.slf4j.Slf4j;
 import org.lognet.springboot.grpc.GRpcGlobalInterceptor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
-
-import javax.crypto.SecretKey;
 
 /**
  * Interceptor that validates user's identity.

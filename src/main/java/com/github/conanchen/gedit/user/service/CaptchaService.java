@@ -94,23 +94,9 @@ public class CaptchaService {
         }
         return SmsStep1QuestionResponse.newBuilder().setQuestionTip(result.getTip()).setToken(result.getToken()).addAllQuestion(questions).build();
     }
-    public SmsStep2AnswerResponse verifyResetPassword(SmsStep2AnswerRequest request){
-        boolean exists = userRepository.existsByMobile(request.getMobile());
-        if ( exists){
-            throw new StatusRuntimeException(Status.ALREADY_EXISTS.withDescription("用户未注册,请返回注册"));
-        }
-        return verify(request);
-    }
 
-    public SmsStep2AnswerResponse verifyRegister(SmsStep2AnswerRequest request){
-        boolean exists = userRepository.existsByMobile(request.getMobile());
-        if ( exists){
-            throw new StatusRuntimeException(Status.FAILED_PRECONDITION.withDescription("用户已注册,如忘记密码请重置"));
-        }
-        return verify(request);
-    }
 
-    private SmsStep2AnswerResponse verify(SmsStep2AnswerRequest request){
+    public SmsStep2AnswerResponse verify(SmsStep2AnswerRequest request){
         com.google.protobuf.ProtocolStringList requestQuestionUuidList = request.getQuestionUuidList();
         BoundValueOperations<String,List<Long>> boundValueOperations =  redisTemplate.boundValueOps("captcha_img_ids_" + request.getToken());
         List<Long> listIds = boundValueOperations.get();
