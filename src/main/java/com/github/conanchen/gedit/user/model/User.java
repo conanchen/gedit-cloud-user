@@ -21,7 +21,7 @@ public class User {
     @Column(columnDefinition = "varchar(11)",unique = true)
     private String mobile;
 
-    @Column(columnDefinition = "varchar(255)")
+    @Column(columnDefinition = "varchar(32)")
     private String password;
 
     @Column(columnDefinition = "varchar(255)")

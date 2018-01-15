@@ -10,6 +10,8 @@ import com.github.conanchen.gedit.user.repository.LoginRepository;
 import com.github.conanchen.gedit.user.repository.UserRepository;
 import com.github.conanchen.gedit.user.service.CaptchaService;
 import com.github.conanchen.gedit.user.thirdpart.sms.MsgSend;
+import com.martiansoftware.validation.Hope;
+import com.martiansoftware.validation.UncheckedValidationException;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import io.jsonwebtoken.CompressionCodecs;
@@ -58,29 +60,35 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
 
     @Override
     public void signinWithPassword(SigninWithPasswordRequest request, StreamObserver<SigninResponse> responseObserver) {
-        SigninResponse.Builder builder = SigninResponse.newBuilder();
-        User user = userRepository.findByMobile(request.getMobile());
-        if (!user.getActive()){
-            Status status = Status.newBuilder()
-                    .setCode(String.valueOf(FAILED_PRECONDITION.value()))
-                    .setDetails("账户被禁用")
-                    .build();
-            builder.setStatus(status);
+        Status.Builder builder = Status.newBuilder();
+        try {
+            String mobile = Hope.that(request.getMobile()).named("mobile")
+                    .isNotNullOrEmpty()
+                    .matches("^(13|14|15|16|17|18|19)\\d{9}$")
+                    .value();
+            String password = Hope.that(request.getMobile()).named("password")
+                    .isNotNullOrEmpty()
+                    .isTrue(n -> n.length() > 6 && n.length() <= 32,"密码长度为6～32位")
+                    .value();
+            User user = userRepository.findByMobile(mobile);
+            if (!user.getActive()){
+                builder.setCode(String.valueOf(FAILED_PRECONDITION.value()))
+                        .setDetails("账户被禁用");
+            }
+            if (DigestUtils.sha256Hex(request.getPassword()).equals(password)){
+                builder.setCode(String.valueOf(OK.value()))
+                        .setDetails("登录成功");
+            }else{
+                builder.setCode(String.valueOf(FAILED_PRECONDITION.value()))
+                        .setDetails("用户名或密码错误");
+            }
+        }catch (UncheckedValidationException e){
+            builder.setCode(String.valueOf(INVALID_ARGUMENT.value()))
+                    .setDetails(e.getMessage());
         }
-        if (DigestUtils.sha256Hex(request.getPassword()).equals(user.getPassword())){
-            Status status = Status.newBuilder()
-                    .setCode(String.valueOf(OK.value()))
-                    .setDetails("登录成功")
-                    .build();
-            builder.setStatus(status);
-        }else{
-            Status status = Status.newBuilder()
-                    .setCode(String.valueOf(FAILED_PRECONDITION.value()))
-                    .setDetails("用户名或密码错误")
-                    .build();
-            builder.setStatus(status);
-        }
-        responseObserver.onNext(builder.build());
+        responseObserver.onNext(SigninResponse.newBuilder()
+                .setStatus(builder.build())
+                .build());
         responseObserver.onCompleted();
     }
 
@@ -92,67 +100,82 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
 
     @Override
     public void signinSmsStep2Answer(SmsStep2AnswerRequest request, StreamObserver<SmsStep2AnswerResponse> responseObserver) {
+        Status.Builder builder = Status.newBuilder();
         try{
-            User user = userRepository.findByMobile(request.getMobile());
+            String mobile = Hope.that(request.getMobile()).named("mobile")
+                    .isNotNullOrEmpty()
+                    .matches("^(13|14|15|16|17|18|19)\\d{9}$")
+                    .value();
+            User user = userRepository.findByMobile(mobile);
             if (user != null) {
                 if (!user.getActive()){
-                    SmsStep2AnswerResponse.Builder builder = SmsStep2AnswerResponse.newBuilder();
-                    Status status = Status.newBuilder()
-                            .setCode(String.valueOf(FAILED_PRECONDITION.value()))
-                            .setDetails("用户已禁用")
-                            .build();
-                    builder.setStatus(status);
-                    responseObserver.onNext(builder.build());
+                    builder.setCode(String.valueOf(FAILED_PRECONDITION.value()))
+                            .setDetails("用户已禁用");
                 }else {
                     responseObserver.onNext(captchaService.verify(request));
+                    responseObserver.onCompleted();
+                    return;
                 }
             }else{
-                SmsStep2AnswerResponse.Builder builder = SmsStep2AnswerResponse.newBuilder();
-                Status status = Status.newBuilder()
-                        .setCode(String.valueOf(FAILED_PRECONDITION.value()))
-                        .setDetails("用户未注册,请返回注册")
-                        .build();
-                builder.setStatus(status);
-                responseObserver.onNext(builder.build());
+                builder.setCode(String.valueOf(FAILED_PRECONDITION.value()))
+                        .setDetails("用户未注册,请返回注册");
             }
-            responseObserver.onCompleted();
         }catch (StatusRuntimeException e){
-            responseObserver.onError(e);
+            builder.setCode(String.valueOf(e.getStatus().getCode().value()))
+                    .setDetails(e.getMessage());
+        }catch (UncheckedValidationException e){
+            builder.setCode(String.valueOf(INVALID_ARGUMENT.value()))
+                    .setDetails(e.getMessage());
         }
+        responseObserver.onNext(SmsStep2AnswerResponse.newBuilder()
+                .setStatus(builder.build())
+                .build());
+        responseObserver.onCompleted();
     }
 
     @Override
     public void signinSmsStep3Signin(SmsStep3SigninRequest request, StreamObserver<SigninResponse> responseObserver) {
         SigninResponse.Builder builder = SigninResponse.newBuilder();
-        User user = userRepository.findByMobile(request.getMobile());
-        if (user != null){
-            if (!user.getActive()){
-                Status status = Status.newBuilder()
-                        .setCode(String.valueOf(FAILED_PRECONDITION.value()))
-                        .setDetails("用户已禁用")
-                        .build();
-                builder.setStatus(status);
-            }else {
-                if (smsActive) {
-                    if (msgSend.verify(request.getMobile(), request.getSmscode())) {
+        try {
+            String mobile = Hope.that(request.getMobile()).named("mobile")
+                    .isNotNullOrEmpty()
+                    .matches("^(13|14|15|16|17|18|19)\\d{9}$")
+                    .value();
+            User user = userRepository.findByMobile(mobile);
+            if (user != null){
+                if (!user.getActive()){
+                    Status status = Status.newBuilder()
+                            .setCode(String.valueOf(FAILED_PRECONDITION.value()))
+                            .setDetails("用户已禁用")
+                            .build();
+                    builder.setStatus(status);
+                }else {
+                    if (smsActive) {
+                        if (msgSend.verify(request.getMobile(), request.getSmscode())) {
+                            signinSms(user,builder);
+                        } else {
+                            Status status = Status.newBuilder()
+                                    .setCode(String.valueOf(FAILED_PRECONDITION.value()))
+                                    .setDetails("验证失败，请重试")
+                                    .build();
+                            builder.setStatus(status);
+                        }
+                    }else{
                         signinSms(user,builder);
-                    } else {
-                        Status status = Status.newBuilder()
-                                .setCode(String.valueOf(FAILED_PRECONDITION.value()))
-                                .setDetails("验证失败，请重试")
-                                .build();
-                        builder.setStatus(status);
                     }
-                }else{
-                    signinSms(user,builder);
+
                 }
 
+            }else {
+                Status status = Status.newBuilder()
+                        .setCode(String.valueOf(FAILED_PRECONDITION.value()))
+                        .setDetails("用户未注册,请返回注册")
+                        .build();
+                builder.setStatus(status);
             }
-
-        }else {
-            Status status = Status.newBuilder()
-                    .setCode(String.valueOf(FAILED_PRECONDITION.value()))
-                    .setDetails("用户未注册,请返回注册")
+        }catch (UncheckedValidationException e){
+            Status status = Status.newBuilder().setCode(String.valueOf(INVALID_ARGUMENT.value()))
+                    .setDetails(e.getMessage())
                     .build();
             builder.setStatus(status);
         }

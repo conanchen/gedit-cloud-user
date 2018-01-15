@@ -12,6 +12,7 @@ import com.github.conanchen.gedit.user.repository.UserRepository;
 import com.github.conanchen.gedit.user.repository.page.OffsetBasedPageRequest;
 import com.github.conanchen.gedit.user.thirdpart.sms.MsgSend;
 import com.github.conanchen.gedit.user.utils.EntityUtils;
+import com.martiansoftware.validation.Hope;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import lombok.AllArgsConstructor;
@@ -97,8 +98,15 @@ public class CaptchaService {
 
 
     public SmsStep2AnswerResponse verify(SmsStep2AnswerRequest request){
-        com.google.protobuf.ProtocolStringList requestQuestionUuidList = request.getQuestionUuidList();
-        BoundValueOperations<String,List<Long>> boundValueOperations =  redisTemplate.boundValueOps("captcha_img_ids_" + request.getToken());
+        String token = Hope.that(request.getToken())
+                .named("token")
+                .isNotNullOrEmpty()
+                .value();
+        com.google.protobuf.ProtocolStringList requestQuestionUuidList = Hope.that(request.getQuestionUuidList())
+                .named("questionUuids")
+                .isNotNullOrEmpty()
+                .value();
+        BoundValueOperations<String,List<Long>> boundValueOperations =  redisTemplate.boundValueOps("captcha_img_ids_" + token);
         List<Long> listIds = boundValueOperations.get();
         if (listIds == null){
             new StatusRuntimeException(Status.DEADLINE_EXCEEDED.withDescription("验证超时"));
