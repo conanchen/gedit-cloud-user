@@ -1,6 +1,8 @@
 package com.github.conanchen.gedit.client;
 
 import com.fasterxml.jackson.databind.util.ArrayIterator;
+import com.github.conanchen.gedit.hello.grpc.HelloGrpc;
+import com.github.conanchen.gedit.hello.grpc.HelloRequest;
 import com.github.conanchen.gedit.user.CloudUserApplication;
 import com.github.conanchen.gedit.user.auth.grpc.*;
 import com.google.gson.Gson;
@@ -33,6 +35,7 @@ public class TestClient {
     private static final Logger log = LoggerFactory.getLogger(TestClient.class);
     private static final Gson gson = new GsonBuilder().setDateFormat(DateFormat.MILLISECOND_FIELD).setPrettyPrinting().create();
     private UserAuthApiGrpc.UserAuthApiBlockingStub blockingStub;
+    private HelloGrpc.HelloBlockingStub helloBlockingStub;
     @Value("${jjwt.expire.minutes:5}")
     private Long expiredInMinutes;
     @Before
@@ -41,6 +44,7 @@ public class TestClient {
                 .usePlaintext(true)
                 .build();
         blockingStub = UserAuthApiGrpc.newBlockingStub(channel);
+        helloBlockingStub = HelloGrpc.newBlockingStub(channel);
     }
 
     @Test
@@ -122,5 +126,9 @@ public class TestClient {
         Instant now = Instant.now();
         Instant future = now.plus(Duration.ofMinutes(expiredInMinutes));
         return  Date.from(future);
+    }
+    @Test
+    public void hello(){
+        helloBlockingStub.sayHello(HelloRequest.newBuilder().build());
     }
 }

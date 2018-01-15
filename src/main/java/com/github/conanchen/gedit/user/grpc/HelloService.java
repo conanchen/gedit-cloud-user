@@ -26,12 +26,13 @@ public class HelloService extends HelloGrpc.HelloImplBase {
                         .setCode(String.valueOf(io.grpc.Status.Code.OK.value()))
                         .setDetails("Hello很高兴回复你，你的hello很温暖。")
                         .build())
+                .setUuid("1")
                 .setMessage(String.format("Hello %s@%s ", request.getName(), dateFormat.format(System.currentTimeMillis())))
                 .setCreated(System.currentTimeMillis())
                 .setLastUpdated(System.currentTimeMillis());
         HelloReply helloReply = replyBuilder.build();
         responseObserver.onNext(helloReply);
-        log.info(String.format("HelloService.sayHello() %d:%s gson=%s", helloReply.getUuid(), helloReply.getMessage(), gson.toJson(helloReply)));
+        log.info(String.format("HelloService.sayHello() %s:%s gson=%s", helloReply.getUuid(), helloReply.getMessage(), gson.toJson(helloReply)));
         responseObserver.onCompleted();
     }
 }
