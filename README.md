@@ -11,3 +11,7 @@
   ```
   nohup java -Dspring.profiles.active=test -jar /root/gedit-cloud-user-0.0.1-SNAPSHOT.jar>log/gedit_user/user.log &
   ```
+- skip docker
+  ```
+    ./gradlew clean build -x test -x docker
+  ```
