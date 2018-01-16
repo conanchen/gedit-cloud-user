@@ -278,6 +278,7 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
         //store jwt id;
         Login login = Login.builder()
                 .active(true)
+                .expireDate(expiredDate)
                 .createdDate(issuedAt)
                 .updatedDate(issuedAt)
                 .build();
