@@ -6,9 +6,9 @@ buildscript {
         GRPC_STARTER_VERSION = '2.1.4'
     }
     repositories {
-        maven {url "http://maven.aliyun.com/nexus/content/groups/public/"}
         mavenCentral()
         maven { url "https://plugins.gradle.org/m2/" }
+        maven {url "http://maven.aliyun.com/nexus/content/groups/public/"}
     }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
@@ -23,6 +23,7 @@ apply plugin: 'org.springframework.boot'
 apply plugin: 'com.palantir.docker'
 
 sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 // This is used as the docker image prefix (org)
 group = 'conanchen'
