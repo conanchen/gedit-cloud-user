@@ -112,11 +112,11 @@ spring:
 spring:
   profiles: test
   datasource:
-    url: jdbc:mysql://192.168.0.1:3306/gedit_user?useSSL=false
+    url: jdbc:mysql://dev.jifenpz.com:3306/gedit_user?useSSL=false
     hikari:
       username: root
       password:
   redis:
-    host: 192.168.0.1
+    host: dev.jifenpz.com
     password: user_center
 ...
