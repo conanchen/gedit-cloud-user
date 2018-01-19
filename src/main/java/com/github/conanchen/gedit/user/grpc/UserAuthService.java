@@ -266,6 +266,7 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
     }
     private RegisterResponse.Builder createUser(User user,String mobile,String password,RegisterResponse.Builder builder){
         Date now = new Date();
+        String detail;
         if (user == null) {
             user = User.builder()
                     .active(true)
@@ -274,9 +275,11 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
                     .mobile(mobile)
                     .password(DigestUtils.sha256Hex(password))
                     .build();
+            detail = "注册成功";
         }else {
             user.setPassword(DigestUtils.sha256Hex(password));
             user.setUpdatedDate(now);
+            detail = "修改密码成功";
         }
         User savedUser = (User) userRepository.save(user);
         //calc expire time
@@ -284,7 +287,7 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
         String compactJws = generate(savedUser.getUuid(),now,date);
         Status status = Status.newBuilder()
                 .setCode(String.valueOf(OK.value()))
-                .setDetails(user == null ? "注册成功" : "修改密码成功")
+                .setDetails(detail)
                 .build();
         return builder.setStatus(status)
                 .setExpiresIn(String.valueOf(date.getTime()))
