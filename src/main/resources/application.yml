@@ -62,7 +62,7 @@ spring:
     pool:
       max-idle: 8
       min-idle: 0
-      max-active: 11
+      max-active: 10
       max-wait: -1
 httpclient:
   pool:
