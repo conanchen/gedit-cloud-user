@@ -66,7 +66,7 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
                     .isNotNullOrEmpty()
                     .matches("^(13|14|15|16|17|18|19)\\d{9}$")
                     .value();
-            String password = Hope.that(request.getMobile()).named("password")
+            String password = Hope.that(request.getPassword()).named("password")
                     .isNotNullOrEmpty()
                     .value();
             User user = userRepository.findByMobile(mobile);
@@ -74,7 +74,7 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
                 builder.setCode(String.valueOf(FAILED_PRECONDITION.value()))
                         .setDetails("账户被禁用");
             }
-            if (DigestUtils.sha256Hex(request.getPassword()).equals(password)){
+            if (DigestUtils.sha256Hex(password).equals(user.getPassword())){
                 builder.setCode(String.valueOf(OK.value()))
                         .setDetails("登录成功");
             }else{
