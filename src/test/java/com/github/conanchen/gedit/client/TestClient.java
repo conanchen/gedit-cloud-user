@@ -80,7 +80,7 @@ public class TestClient {
     }
     @Test
     public void testRegisterStep3(){
-        SigninResponse response = blockingStub.registerSmsStep3Signin(SmsStep3RegisterRequest.newBuilder()
+        RegisterResponse response = blockingStub.registerSmsStep3Register(SmsStep3RegisterRequest.newBuilder()
                 .setMobile("15281718792")
                 .setPassword("123456")
                 .setSmscode("123456")
