@@ -203,7 +203,11 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
     public void registerSmsStep3Register(SmsStep3RegisterRequest request, StreamObserver<RegisterResponse> responseObserver) {
         RegisterResponse.Builder builder = RegisterResponse.newBuilder();
         try {
-            User user = userRepository.findByMobile(request.getMobile());
+            String mobile = Hope.that(request.getMobile()).named("mobile")
+                    .isNotNullOrEmpty()
+                    .matches("^(13|14|15|16|17|18|19)\\d{9}$")
+                    .value();
+            User user = userRepository.findByMobile(mobile);
             if (user != null && !user.getActive()){
                 Status status = Status.newBuilder()
                         .setCode(String.valueOf(FAILED_PRECONDITION.value()))
@@ -212,8 +216,8 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
                 builder.setStatus(status);
             }else {
                 if (smsActive) {
-                    if (msgSend.verify(request.getMobile(), request.getSmscode())) {
-                        createUser(user,request.getMobile(), request.getPassword(), builder);
+                    if (msgSend.verify(mobile, request.getSmscode())) {
+                        createUser(user,mobile, request.getPassword(), builder);
                     } else {
                         Status status = Status.newBuilder()
                                 .setCode(String.valueOf(FAILED_PRECONDITION.value()))
@@ -222,10 +226,16 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
                         builder.setStatus(status);
                     }
                 } else {
-                    createUser(user,request.getMobile(), request.getPassword(), builder);
+                    createUser(user,mobile, request.getPassword(), builder);
                 }
             }
-        } catch (DuplicateKeyException e){
+        }catch (UncheckedValidationException e) {
+            Status status = Status.newBuilder()
+                    .setCode(String.valueOf(INVALID_ARGUMENT.value()))
+                    .setDetails(e.getMessage())
+                    .build();
+            builder.setStatus(status);
+        }catch (DuplicateKeyException e){
             Status status = Status.newBuilder()
                     .setCode(String.valueOf(ALREADY_EXISTS.value()))
                     .setDetails("用户已注册,请返回登录")
