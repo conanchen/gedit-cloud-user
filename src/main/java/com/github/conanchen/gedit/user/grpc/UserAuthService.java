@@ -316,7 +316,7 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
     private Date expireDate(){
         //time calc
         Instant now = Instant.now();
-        now.plus(Duration.ofMinutes(expiredInMinutes));
-        return  Date.from(now);
+        Instant expireDate = now.plus(Duration.ofMinutes(expiredInMinutes));
+        return  Date.from(expireDate);
     }
 }
