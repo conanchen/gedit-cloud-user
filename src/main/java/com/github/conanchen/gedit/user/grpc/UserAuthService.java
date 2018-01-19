@@ -61,6 +61,7 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
     @Override
     public void signinWithPassword(SigninWithPasswordRequest request, StreamObserver<SigninResponse> responseObserver) {
         Status.Builder builder = Status.newBuilder();
+        String accessToken = "";
         try {
             String mobile = Hope.that(request.getMobile()).named("mobile")
                     .isNotNullOrEmpty()
@@ -75,6 +76,8 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
                         .setDetails("账户被禁用");
             }
             if (DigestUtils.sha256Hex(password).equals(user.getPassword())){
+                String compactJws = generate(user.getUuid(),new Date(),expireDate());
+                accessToken = AuthInterceptor.AUTHENTICATION_SCHEME + compactJws;
                 builder.setCode(String.valueOf(OK.value()))
                         .setDetails("登录成功");
             }else{
@@ -87,6 +90,7 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
         }
         responseObserver.onNext(SigninResponse.newBuilder()
                 .setStatus(builder.build())
+                .setAccessToken(accessToken)
                 .build());
         responseObserver.onCompleted();
     }
