@@ -27,7 +27,7 @@ public class Login {
     @NonNull
     private Boolean active;
 
-    @Column(columnDefinition = "tinyint(1)",nullable = false)
+    @Column(columnDefinition = "datetime",nullable = false)
     private Date expireDate;
 
     @Column(columnDefinition = "datetime")
