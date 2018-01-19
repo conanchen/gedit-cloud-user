@@ -1,6 +1,5 @@
 package com.github.conanchen.gedit.client;
 
-import com.fasterxml.jackson.databind.util.ArrayIterator;
 import com.github.conanchen.gedit.hello.grpc.HelloGrpc;
 import com.github.conanchen.gedit.hello.grpc.HelloRequest;
 import com.github.conanchen.gedit.user.CloudUserApplication;
@@ -21,11 +20,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import javax.crypto.SecretKey;
 import java.security.Key;
 import java.text.DateFormat;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -70,7 +69,7 @@ public class TestClient {
                 break;
             }
         }
-        Iterable<String> uuids = new ArrayIterator<>(uuidsArray);
+        Iterable<String> uuids = new ArrayList<>();
         SmsStep2AnswerResponse response2 = blockingStub.registerSmsStep2Answer(SmsStep2AnswerRequest.newBuilder()
                 .setMobile("15281718791")
                 .setToken(response1.getToken())
