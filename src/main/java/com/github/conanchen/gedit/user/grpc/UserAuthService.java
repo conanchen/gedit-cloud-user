@@ -208,7 +208,7 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
                     .value();
             String password = Hope.that(request.getPassword()).named("password")
                     .isNotNullOrEmpty()
-                    .isTrue(n -> n.length() > 6 && n.length() <= 32,"密码长度为6～32位")
+                    .isTrue(n -> n.length() >= 6 && n.length() <= 32,"密码长度为6～32位")
                     .value();
             String ssmCode = Hope.that(request.getSmscode()).named("ssmCode")
                     .isNotNullOrEmpty()
