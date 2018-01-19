@@ -206,7 +206,7 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
                     .isNotNullOrEmpty()
                     .matches("^(13|14|15|16|17|18|19)\\d{9}$")
                     .value();
-            String password = Hope.that(request.getMobile()).named("password")
+            String password = Hope.that(request.getPassword()).named("password")
                     .isNotNullOrEmpty()
                     .isTrue(n -> n.length() > 6 && n.length() <= 32,"密码长度为6～32位")
                     .value();
