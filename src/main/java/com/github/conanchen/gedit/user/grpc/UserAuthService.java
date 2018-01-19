@@ -68,7 +68,6 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
                     .value();
             String password = Hope.that(request.getMobile()).named("password")
                     .isNotNullOrEmpty()
-                    .isTrue(n -> n.length() > 6 && n.length() <= 32,"密码长度为6～32位")
                     .value();
             User user = userRepository.findByMobile(mobile);
             if (!user.getActive()){
@@ -207,6 +206,13 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
                     .isNotNullOrEmpty()
                     .matches("^(13|14|15|16|17|18|19)\\d{9}$")
                     .value();
+            String password = Hope.that(request.getMobile()).named("password")
+                    .isNotNullOrEmpty()
+                    .isTrue(n -> n.length() > 6 && n.length() <= 32,"密码长度为6～32位")
+                    .value();
+            String ssmCode = Hope.that(request.getSmscode()).named("ssmCode")
+                    .isNotNullOrEmpty()
+                    .value();
             User user = userRepository.findByMobile(mobile);
             if (user != null && !user.getActive()){
                 Status status = Status.newBuilder()
@@ -216,8 +222,8 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
                 builder.setStatus(status);
             }else {
                 if (smsActive) {
-                    if (msgSend.verify(mobile, request.getSmscode())) {
-                        createUser(user,mobile, request.getPassword(), builder);
+                    if (msgSend.verify(mobile, ssmCode)) {
+                        createUser(user,mobile, password, builder);
                     } else {
                         Status status = Status.newBuilder()
                                 .setCode(String.valueOf(FAILED_PRECONDITION.value()))
@@ -226,7 +232,7 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
                         builder.setStatus(status);
                     }
                 } else {
-                    createUser(user,mobile, request.getPassword(), builder);
+                    createUser(user,mobile, password, builder);
                 }
             }
         }catch (UncheckedValidationException e) {
