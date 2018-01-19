@@ -200,8 +200,8 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
     }
 
     @Override
-    public void registerSmsStep3Signin(SmsStep3RegisterRequest request, StreamObserver<SigninResponse> responseObserver) {
-        SigninResponse.Builder builder = SigninResponse.newBuilder();
+    public void registerSmsStep3Register(SmsStep3RegisterRequest request, StreamObserver<RegisterResponse> responseObserver) {
+        RegisterResponse.Builder builder = RegisterResponse.newBuilder();
         try {
             User user = userRepository.findByMobile(request.getMobile());
             if (user != null && !user.getActive()){
@@ -248,7 +248,7 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
                 .setExpiresIn(String.valueOf(date.getTime()))
                 .setAccessToken(AuthInterceptor.AUTHENTICATION_SCHEME + compactJws);
     }
-    private SigninResponse.Builder createUser(User user,String mobile,String password,SigninResponse.Builder builder){
+    private RegisterResponse.Builder createUser(User user,String mobile,String password,RegisterResponse.Builder builder){
         Date now = new Date();
         if (user == null) {
             user = User.builder()
