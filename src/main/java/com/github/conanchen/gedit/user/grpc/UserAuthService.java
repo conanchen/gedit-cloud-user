@@ -62,6 +62,7 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
     public void signinWithPassword(SigninWithPasswordRequest request, StreamObserver<SigninResponse> responseObserver) {
         Status.Builder builder = Status.newBuilder();
         String accessToken = "";
+        Date date = null;
         try {
             String mobile = Hope.that(request.getMobile()).named("mobile")
                     .isNotNullOrEmpty()
@@ -76,6 +77,7 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
                         .setDetails("账户被禁用");
             }
             if (DigestUtils.sha256Hex(password).equals(user.getPassword())){
+                date = expireDate();
                 String compactJws = generate(user.getUuid(),new Date(),expireDate());
                 accessToken = AuthInterceptor.AUTHENTICATION_SCHEME + compactJws;
                 builder.setCode(String.valueOf(OK.value()))
@@ -91,6 +93,7 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
         responseObserver.onNext(SigninResponse.newBuilder()
                 .setStatus(builder.build())
                 .setAccessToken(accessToken)
+                .setExpiresIn(date == null ? "" : String.valueOf(date.getTime()))
                 .build());
         responseObserver.onCompleted();
     }
