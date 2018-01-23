@@ -79,7 +79,7 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
             if (DigestUtils.sha256Hex(password).equals(user.getPassword())){
                 date = expireDate();
                 String compactJws = generate(user.getUuid(),new Date(),expireDate());
-                accessToken = AuthInterceptor.AUTHENTICATION_SCHEME + compactJws;
+                accessToken = compactJws;
                 builder.setCode(String.valueOf(OK.value()))
                         .setDetails("登录成功");
             }else{
@@ -312,7 +312,7 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
                 .build();
         return builder.setStatus(status)
                 .setExpiresIn(String.valueOf(date.getTime()))
-                .setAccessToken(AuthInterceptor.AUTHENTICATION_SCHEME + compactJws);
+                .setAccessToken(compactJws);
     }
     private String generate(String uuid,Date issuedAt,Date expiredDate){
         //store jwt id;
