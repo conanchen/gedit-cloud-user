@@ -197,12 +197,26 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
 
     @Override
     public void registerSmsStep2Answer(SmsStep2AnswerRequest request, StreamObserver<SmsStep2AnswerResponse> responseObserver) {
+        Status status;
         try{
-            responseObserver.onNext(captchaService.verify(request));
-            responseObserver.onCompleted();
+            captchaService.verify(request);
+            status = Status.newBuilder()
+                    .setCode(String.valueOf(OK.value()))
+                    .setDetails("success")
+                    .build();
+        } catch (UncheckedValidationException e) {
+            status = Status.newBuilder()
+                    .setCode(String.valueOf(INVALID_ARGUMENT.value()))
+                    .setDetails(e.getMessage())
+                    .build();
         }catch (StatusRuntimeException e){
-            responseObserver.onError(e);
+            status = Status.newBuilder()
+                    .setCode(String.valueOf(e.getStatus().getCode().value()))
+                    .setDetails(e.getMessage())
+                    .build();
         }
+        responseObserver.onNext(SmsStep2AnswerResponse.newBuilder().setStatus(status).build());
+        responseObserver.onCompleted();
     }
 
     @Override
