@@ -29,8 +29,8 @@ import java.util.Date;
 
 import static io.grpc.Status.Code.*;
 
-@GRpcService(applyGlobalInterceptors = false,interceptors = {LogInterceptor.class})
-public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
+@GRpcService(applyGlobalInterceptors = false, interceptors = {LogInterceptor.class})
+public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase {
     @Value("${jjwt.expire.minutes:5}")
     private Long expiredInMinutes;
     @Value("${jjwt.sigin.key:shuai}")
@@ -45,6 +45,7 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
     private MsgSend msgSend;
     @Autowired
     private LoginRepository loginRepository;
+
     @Override
     public void signinQQ(SigninQQRequest request, StreamObserver<SigninResponse> responseObserver) {
     }
@@ -72,22 +73,22 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
                     .isNotNullOrEmpty()
                     .value();
             User user = userRepository.findByMobile(mobile);
-            if (!user.getActive()){
-                builder.setCode(String.valueOf(FAILED_PRECONDITION.value()))
+            if (!user.getActive()) {
+                builder.setCode(Status.Code.FAILED_PRECONDITION)
                         .setDetails("账户被禁用");
             }
-            if (DigestUtils.sha256Hex(password).equals(user.getPassword())){
+            if (DigestUtils.sha256Hex(password).equals(user.getPassword())) {
                 date = expireDate();
-                String compactJws = generate(user.getUuid(),new Date(),expireDate());
+                String compactJws = generate(user.getUuid(), new Date(), expireDate());
                 accessToken = compactJws;
-                builder.setCode(String.valueOf(OK.value()))
+                builder.setCode(Status.Code.OK)
                         .setDetails("登录成功");
-            }else{
-                builder.setCode(String.valueOf(FAILED_PRECONDITION.value()))
+            } else {
+                builder.setCode(Status.Code.FAILED_PRECONDITION)
                         .setDetails("用户名或密码错误");
             }
-        }catch (UncheckedValidationException e){
-            builder.setCode(String.valueOf(INVALID_ARGUMENT.value()))
+        } catch (UncheckedValidationException e) {
+            builder.setCode(Status.Code.INVALID_ARGUMENT)
                     .setDetails(e.getMessage());
         }
         responseObserver.onNext(SigninResponse.newBuilder()
@@ -107,30 +108,27 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
     @Override
     public void signinSmsStep2Answer(SmsStep2AnswerRequest request, StreamObserver<SmsStep2AnswerResponse> responseObserver) {
         Status.Builder builder = Status.newBuilder();
-        try{
+        try {
             String mobile = Hope.that(request.getMobile()).named("mobile")
                     .isNotNullOrEmpty()
                     .matches("^(13|14|15|16|17|18|19)\\d{9}$")
                     .value();
             User user = userRepository.findByMobile(mobile);
             if (user != null) {
-                if (!user.getActive()){
-                    builder.setCode(String.valueOf(FAILED_PRECONDITION.value()))
+                if (!user.getActive()) {
+                    builder.setCode(Status.Code.FAILED_PRECONDITION)
                             .setDetails("用户已禁用");
-                }else {
+                } else {
                     responseObserver.onNext(captchaService.verify(request));
                     responseObserver.onCompleted();
                     return;
                 }
-            }else{
-                builder.setCode(String.valueOf(FAILED_PRECONDITION.value()))
+            } else {
+                builder.setCode(Status.Code.FAILED_PRECONDITION)
                         .setDetails("用户未注册,请返回注册");
             }
-        }catch (StatusRuntimeException e){
-            builder.setCode(String.valueOf(e.getStatus().getCode().value()))
-                    .setDetails(e.getMessage());
-        }catch (UncheckedValidationException e){
-            builder.setCode(String.valueOf(INVALID_ARGUMENT.value()))
+        } catch (UncheckedValidationException e) {
+            builder.setCode(Status.Code.INVALID_ARGUMENT)
                     .setDetails(e.getMessage());
         }
         responseObserver.onNext(SmsStep2AnswerResponse.newBuilder()
@@ -148,39 +146,39 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
                     .matches("^(13|14|15|16|17|18|19)\\d{9}$")
                     .value();
             User user = userRepository.findByMobile(mobile);
-            if (user != null){
-                if (!user.getActive()){
+            if (user != null) {
+                if (!user.getActive()) {
                     Status status = Status.newBuilder()
-                            .setCode(String.valueOf(FAILED_PRECONDITION.value()))
+                            .setCode(Status.Code.FAILED_PRECONDITION)
                             .setDetails("用户已禁用")
                             .build();
                     builder.setStatus(status);
-                }else {
+                } else {
                     if (smsActive) {
                         if (msgSend.verify(request.getMobile(), request.getSmscode())) {
-                            signinSms(user,builder);
+                            signinSms(user, builder);
                         } else {
                             Status status = Status.newBuilder()
-                                    .setCode(String.valueOf(FAILED_PRECONDITION.value()))
+                                    .setCode(Status.Code.FAILED_PRECONDITION)
                                     .setDetails("验证失败，请重试")
                                     .build();
                             builder.setStatus(status);
                         }
-                    }else{
-                        signinSms(user,builder);
+                    } else {
+                        signinSms(user, builder);
                     }
 
                 }
 
-            }else {
+            } else {
                 Status status = Status.newBuilder()
-                        .setCode(String.valueOf(FAILED_PRECONDITION.value()))
+                        .setCode(Status.Code.FAILED_PRECONDITION)
                         .setDetails("用户未注册,请返回注册")
                         .build();
                 builder.setStatus(status);
             }
-        }catch (UncheckedValidationException e){
-            Status status = Status.newBuilder().setCode(String.valueOf(INVALID_ARGUMENT.value()))
+        } catch (UncheckedValidationException e) {
+            Status status = Status.newBuilder().setCode(Status.Code.INVALID_ARGUMENT)
                     .setDetails(e.getMessage())
                     .build();
             builder.setStatus(status);
@@ -198,20 +196,15 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
     @Override
     public void registerSmsStep2Answer(SmsStep2AnswerRequest request, StreamObserver<SmsStep2AnswerResponse> responseObserver) {
         Status status;
-        try{
+        try {
             captchaService.verify(request);
             status = Status.newBuilder()
-                    .setCode(String.valueOf(OK.value()))
+                    .setCode(Status.Code.OK)
                     .setDetails("success")
                     .build();
         } catch (UncheckedValidationException e) {
             status = Status.newBuilder()
-                    .setCode(String.valueOf(INVALID_ARGUMENT.value()))
-                    .setDetails(e.getMessage())
-                    .build();
-        }catch (StatusRuntimeException e){
-            status = Status.newBuilder()
-                    .setCode(String.valueOf(e.getStatus().getCode().value()))
+                    .setCode(Status.Code.INVALID_ARGUMENT)
                     .setDetails(e.getMessage())
                     .build();
         }
@@ -229,42 +222,42 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
                     .value();
             String password = Hope.that(request.getPassword()).named("password")
                     .isNotNullOrEmpty()
-                    .isTrue(n -> n.length() >= 6 && n.length() <= 32,"密码长度为6～32位")
+                    .isTrue(n -> n.length() >= 6 && n.length() <= 32, "密码长度为6～32位")
                     .value();
             String ssmCode = Hope.that(request.getSmscode()).named("ssmCode")
                     .isNotNullOrEmpty()
                     .value();
             User user = userRepository.findByMobile(mobile);
-            if (user != null && !user.getActive()){
+            if (user != null && !user.getActive()) {
                 Status status = Status.newBuilder()
-                        .setCode(String.valueOf(FAILED_PRECONDITION.value()))
+                        .setCode(Status.Code.FAILED_PRECONDITION)
                         .setDetails("用户已禁用")
                         .build();
                 builder.setStatus(status);
-            }else {
+            } else {
                 if (smsActive) {
                     if (msgSend.verify(mobile, ssmCode)) {
-                        createUser(user,mobile, password, builder);
+                        createUser(user, mobile, password, builder);
                     } else {
                         Status status = Status.newBuilder()
-                                .setCode(String.valueOf(FAILED_PRECONDITION.value()))
+                                .setCode(Status.Code.FAILED_PRECONDITION)
                                 .setDetails("验证失败，请重试")
                                 .build();
                         builder.setStatus(status);
                     }
                 } else {
-                    createUser(user,mobile, password, builder);
+                    createUser(user, mobile, password, builder);
                 }
             }
-        }catch (UncheckedValidationException e) {
+        } catch (UncheckedValidationException e) {
             Status status = Status.newBuilder()
-                    .setCode(String.valueOf(INVALID_ARGUMENT.value()))
+                    .setCode(Status.Code.INVALID_ARGUMENT)
                     .setDetails(e.getMessage())
                     .build();
             builder.setStatus(status);
-        }catch (DuplicateKeyException e){
+        } catch (DuplicateKeyException e) {
             Status status = Status.newBuilder()
-                    .setCode(String.valueOf(ALREADY_EXISTS.value()))
+                    .setCode(Status.Code.ALREADY_EXISTS)
                     .setDetails("用户已注册,请返回登录")
                     .build();
             builder.setStatus(status);
@@ -273,19 +266,20 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
         responseObserver.onCompleted();
     }
 
-    private SigninResponse.Builder signinSms(User user, SigninResponse.Builder builder){
+    private SigninResponse.Builder signinSms(User user, SigninResponse.Builder builder) {
         //calc expire time
         Date date = expireDate();
         Status status = Status.newBuilder()
-                .setCode(String.valueOf(OK.value()))
-                .setDetails( "登录成功")
+                .setCode(Status.Code.OK)
+                .setDetails("登录成功")
                 .build();
-        String compactJws = generate(user.getUuid(),new Date(),date);
+        String compactJws = generate(user.getUuid(), new Date(), date);
         return builder.setStatus(status)
                 .setExpiresIn(String.valueOf(date.getTime()))
                 .setAccessToken(AuthInterceptor.AUTHENTICATION_SCHEME + compactJws);
     }
-    private RegisterResponse.Builder createUser(User user,String mobile,String password,RegisterResponse.Builder builder){
+
+    private RegisterResponse.Builder createUser(User user, String mobile, String password, RegisterResponse.Builder builder) {
         Date now = new Date();
         String detail;
         if (user == null) {
@@ -297,7 +291,7 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
                     .password(DigestUtils.sha256Hex(password))
                     .build();
             detail = "注册成功";
-        }else {
+        } else {
             user.setPassword(DigestUtils.sha256Hex(password));
             user.setUpdatedDate(now);
             detail = "修改密码成功";
@@ -305,16 +299,17 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
         User savedUser = (User) userRepository.save(user);
         //calc expire time
         Date date = expireDate();
-        String compactJws = generate(savedUser.getUuid(),now,date);
+        String compactJws = generate(savedUser.getUuid(), now, date);
         Status status = Status.newBuilder()
-                .setCode(String.valueOf(OK.value()))
+                .setCode(Status.Code.OK)
                 .setDetails(detail)
                 .build();
         return builder.setStatus(status)
                 .setExpiresIn(String.valueOf(date.getTime()))
                 .setAccessToken(compactJws);
     }
-    private String generate(String uuid,Date issuedAt,Date expiredDate){
+
+    private String generate(String uuid, Date issuedAt, Date expiredDate) {
         //store jwt id;
         Login login = Login.builder()
                 .active(true)
@@ -334,10 +329,11 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase{
                 .setExpiration(expiredDate)
                 .compact();
     }
-    private Date expireDate(){
+
+    private Date expireDate() {
         //time calc
         Instant now = Instant.now();
         Instant expireDate = now.plus(Duration.ofMinutes(expiredInMinutes));
-        return  Date.from(expireDate);
+        return Date.from(expireDate);
     }
 }

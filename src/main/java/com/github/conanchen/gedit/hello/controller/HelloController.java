@@ -1,4 +1,4 @@
-package com.github.conanchen.gedit.user.controller;
+package com.github.conanchen.gedit.hello.controller;
 
 import com.google.gson.Gson;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
