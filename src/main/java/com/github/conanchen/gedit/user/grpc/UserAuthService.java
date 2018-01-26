@@ -130,6 +130,9 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase {
         } catch (UncheckedValidationException e) {
             builder.setCode(Status.Code.INVALID_ARGUMENT)
                     .setDetails(e.getMessage());
+        } catch (StatusRuntimeException e){
+            builder.setCode(Status.Code.forNumber(e.getStatus().getCode().value()))
+                    .setDetails(e.getMessage());
         }
         responseObserver.onNext(SmsStep2AnswerResponse.newBuilder()
                 .setStatus(builder.build())
