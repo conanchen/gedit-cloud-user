@@ -26,7 +26,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import javax.annotation.PostConstruct;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -123,7 +122,7 @@ public class CaptchaService {
         }
         return SmsStep2AnswerResponse.newBuilder()
                 .setStatus(com.github.conanchen.gedit.common.grpc.Status.newBuilder()
-                        .setCode(String.valueOf(Status.OK.getCode().value()))
+                        .setCode(com.github.conanchen.gedit.common.grpc.Status.Code.OK)
                         .setDetails("success"))
                 .build();
     }
