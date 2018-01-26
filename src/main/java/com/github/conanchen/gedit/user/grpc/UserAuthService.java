@@ -73,6 +73,10 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase {
                     .isNotNullOrEmpty()
                     .value();
             User user = userRepository.findByMobile(mobile);
+            if (user ==  null){
+                builder.setCode(Status.Code.FAILED_PRECONDITION)
+                        .setDetails("账户不存在");
+            }
             if (!user.getActive()) {
                 builder.setCode(Status.Code.FAILED_PRECONDITION)
                         .setDetails("账户被禁用");
