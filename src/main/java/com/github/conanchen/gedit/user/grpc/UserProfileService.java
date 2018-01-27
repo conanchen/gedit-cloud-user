@@ -111,7 +111,7 @@ public class UserProfileService extends UserProfileApiGrpc.UserProfileApiImplBas
                         .setDistrictId(Hope.that(user.getDistrictUuid()).orElse(EMPTY_STR).value())
                         .setLogo(Hope.that(user.getLogo()).orElse(EMPTY_STR).value())
                         .setPhotos(ListString.newBuilder()
-                                .addAllStrs(user.getImages() == null ? null : gson.fromJson(user.getImages(),new TypeToken<Iterable<String>>() {}.getType()))
+                                .addAllStrs(user.getPhotos() == null ? null : gson.fromJson(user.getPhotos(),new TypeToken<Iterable<String>>() {}.getType()))
                                 .build())
                         .setMobile(user.getMobile())
                         .setName(Hope.that(user.getName()).orElse(EMPTY_STR).value())
