@@ -1,6 +1,6 @@
 package com.github.conanchen.gedit.user.grpc;
 
-import com.github.conanchen.gedit.common.grpc.ListURL;
+import com.github.conanchen.gedit.common.grpc.ListString;
 import com.github.conanchen.gedit.common.grpc.Status;
 import com.github.conanchen.gedit.user.grpc.interceptor.AuthInterceptor;
 import com.github.conanchen.gedit.user.model.User;
@@ -13,8 +13,6 @@ import com.martiansoftware.validation.UncheckedValidationException;
 import io.grpc.stub.StreamObserver;
 import io.jsonwebtoken.Claims;
 import org.lognet.springboot.grpc.GRpcService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 
 import javax.annotation.Resource;
 
@@ -70,7 +68,11 @@ public class UserProfileService extends UserProfileApiGrpc.UserProfileApiImplBas
 
     @Override
     public void updateMyProfile(UpdateMyProfileRequest request, StreamObserver<UpdateMyProfileResponse> responseObserver) {
-        super.updateMyProfile(request, responseObserver);
+        try {
+
+        }catch (UncheckedValidationException e){
+
+        }
     }
 
     @Override
@@ -108,8 +110,8 @@ public class UserProfileService extends UserProfileApiGrpc.UserProfileApiImplBas
                         .setDesc(Hope.that(user.getDescr()).orElse(EMPTY_STR).value())
                         .setDistrictId(Hope.that(user.getDistrictUuid()).orElse(EMPTY_STR).value())
                         .setLogo(Hope.that(user.getLogo()).orElse(EMPTY_STR).value())
-                        .setImages(ListURL.newBuilder()
-                                .addAllUrls(user.getImages() == null ? null : gson.fromJson(user.getImages(),new TypeToken<Iterable<String>>() {}.getType()))
+                        .setPhotos(ListString.newBuilder()
+                                .addAllStrs(user.getImages() == null ? null : gson.fromJson(user.getImages(),new TypeToken<Iterable<String>>() {}.getType()))
                                 .build())
                         .setMobile(user.getMobile())
                         .setName(Hope.that(user.getName()).orElse(EMPTY_STR).value())

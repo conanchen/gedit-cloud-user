@@ -40,7 +40,7 @@ public class User {
     private String wechat;
 
     @Column(columnDefinition = "varchar(4096)")
-    private String images;
+    private String photos;
 
     @Column(columnDefinition = "tinyint(1)",nullable = false)
     @NonNull
