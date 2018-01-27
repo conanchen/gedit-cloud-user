@@ -24,8 +24,8 @@ public class User {
     @Column(columnDefinition = "varchar(255)")
     private String password;
 
-    @Column(columnDefinition = "varchar(255)")
-    private String name;
+    @Column(columnDefinition = "varchar(32)")
+    private String username;
 
     @Column(columnDefinition = "varchar(255)")
     private String descr;
