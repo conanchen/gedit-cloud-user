@@ -2,6 +2,7 @@ package com.github.conanchen.gedit.user.grpc;
 
 import com.github.conanchen.gedit.common.grpc.ListURL;
 import com.github.conanchen.gedit.common.grpc.Status;
+import com.github.conanchen.gedit.user.grpc.interceptor.AuthInterceptor;
 import com.github.conanchen.gedit.user.model.User;
 import com.github.conanchen.gedit.user.profile.grpc.*;
 import com.github.conanchen.gedit.user.repository.UserRepository;
@@ -10,6 +11,7 @@ import com.google.gson.Gson;
 import com.martiansoftware.validation.Hope;
 import com.martiansoftware.validation.UncheckedValidationException;
 import io.grpc.stub.StreamObserver;
+import io.jsonwebtoken.Claims;
 import org.lognet.springboot.grpc.GRpcService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureOrder;
@@ -73,7 +75,21 @@ public class UserProfileService extends UserProfileApiGrpc.UserProfileApiImplBas
 
     @Override
     public void getMyProfile(GetMyProfileRequest request, StreamObserver<UserProfileResponse> responseObserver) {
-        super.getMyProfile(request, responseObserver);
+        UserProfileResponse.Builder builder;
+        try {
+            Claims claims = AuthInterceptor.USER_CLAIMS.get();
+            String uuid = Hope.that(claims.getSubject()).named("uuid").isNotNullOrEmpty().value();
+            User user = (User) userRepository.findOne(uuid);
+            builder = modelToResponse(user);
+        }catch (UncheckedValidationException e){
+            builder = UserProfileResponse.newBuilder()
+                    .setStatus(Status.newBuilder()
+                            .setCode(Status.Code.INVALID_ARGUMENT)
+                            .setDetails(e.getMessage())
+                            .build());
+        }
+        responseObserver.onNext(builder.build());
+        responseObserver.onCompleted();
     }
 
     @Override
