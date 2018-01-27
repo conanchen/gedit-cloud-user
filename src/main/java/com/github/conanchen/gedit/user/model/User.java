@@ -30,12 +30,17 @@ public class User {
     @Column(columnDefinition = "varchar(255)")
     private String descr;
 
+    @Column(columnDefinition = "varchar(16)")
+    private String DistrictUuid;
 
     @Column(columnDefinition = "varchar(64)")
     private String qq;
 
     @Column(columnDefinition = "varchar(64)")
     private String wechat;
+
+    @Column(columnDefinition = "varchar(4096)")
+    private String images;
 
     @Column(columnDefinition = "tinyint(1)",nullable = false)
     @NonNull

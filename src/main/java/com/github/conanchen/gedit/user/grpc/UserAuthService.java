@@ -27,8 +27,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 
-import static io.grpc.Status.Code.*;
-
 @GRpcService(applyGlobalInterceptors = false, interceptors = {LogInterceptor.class})
 public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase {
     @Value("${jjwt.expire.minutes:5}")
