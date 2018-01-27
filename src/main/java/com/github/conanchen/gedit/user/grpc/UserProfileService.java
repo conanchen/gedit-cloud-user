@@ -122,7 +122,7 @@ public class UserProfileService extends UserProfileApiGrpc.UserProfileApiImplBas
                     user.setPhotos(strPhotos);
                     break;
                 case DISTRICTUUID:
-                    String districtuuid = Hope.that(request.getDistrictUuId())
+                    String districtuuid = Hope.that(request.getDistrictUuid())
                             .named("DISTRICTUUID")
                             .isNotNullOrEmpty()
                             .isTrue(n -> n.length() <= 16)
@@ -186,7 +186,9 @@ public class UserProfileService extends UserProfileApiGrpc.UserProfileApiImplBas
                         .setDistrictUuid(Hope.that(user.getDistrictUuid()).orElse(EMPTY_STR).value())
                         .setLogo(Hope.that(user.getLogo()).orElse(EMPTY_STR).value())
                         .setPhotos(ListString.newBuilder()
-                                .addAllStrs(user.getPhotos() == null ? Collections.EMPTY_LIST : gson.fromJson(user.getPhotos(),new TypeToken<Iterable<String>>() {}.getType()))
+                                .addAllStrs(user.getPhotos() == null
+                                        ? Collections.EMPTY_LIST
+                                        : gson.fromJson(user.getPhotos(),new TypeToken<Iterable<String>>() {}.getType()))
                                 .build())
                         .setMobile(user.getMobile())
                         .setUsername(Hope.that(user.getUsername()).orElse(EMPTY_STR).value())
