@@ -15,6 +15,7 @@ import io.jsonwebtoken.Claims;
 import org.lognet.springboot.grpc.GRpcService;
 
 import javax.annotation.Resource;
+import java.util.Collections;
 
 @GRpcService
 public class UserProfileService extends UserProfileApiGrpc.UserProfileApiImplBase {
@@ -69,7 +70,17 @@ public class UserProfileService extends UserProfileApiGrpc.UserProfileApiImplBas
     @Override
     public void updateMyProfile(UpdateMyProfileRequest request, StreamObserver<UpdateMyProfileResponse> responseObserver) {
         try {
-
+            switch (request.getPropertyCase()){
+                case DESC:
+                case LOGO:
+                case NAME:
+                case ACTIVE:
+                case MOBILE:
+                case PHOTOS:
+                case DISTRICTID:
+                case PROPERTY_NOT_SET:
+                    throw new UncheckedValidationException("no properties set");
+            }
         }catch (UncheckedValidationException e){
 
         }
@@ -111,7 +122,7 @@ public class UserProfileService extends UserProfileApiGrpc.UserProfileApiImplBas
                         .setDistrictId(Hope.that(user.getDistrictUuid()).orElse(EMPTY_STR).value())
                         .setLogo(Hope.that(user.getLogo()).orElse(EMPTY_STR).value())
                         .setPhotos(ListString.newBuilder()
-                                .addAllStrs(user.getPhotos() == null ? null : gson.fromJson(user.getPhotos(),new TypeToken<Iterable<String>>() {}.getType()))
+                                .addAllStrs(user.getPhotos() == null ? Collections.EMPTY_LIST : gson.fromJson(user.getPhotos(),new TypeToken<Iterable<String>>() {}.getType()))
                                 .build())
                         .setMobile(user.getMobile())
                         .setName(Hope.that(user.getName()).orElse(EMPTY_STR).value())
