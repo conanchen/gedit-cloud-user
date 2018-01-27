@@ -107,6 +107,8 @@ spring:
   redis:
     host: 192.168.1.200
     password: user_center
+accounting:
+  uri: 192.168.1.200
 ...
 ---
 spring:
@@ -119,4 +121,6 @@ spring:
   redis:
     host: dev.jifenpz.com
     password: user_center
+accounting:
+  uri: dev.jifenpz.com
 ...

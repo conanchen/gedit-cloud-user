@@ -15,7 +15,7 @@ import javax.annotation.PostConstruct;
 @Slf4j
 @Component
 public class AccountingClient {
-    @Value("${search.uri}")
+    @Value("${accounting.uri}")
     private String uri;
     //channel
     private ManagedChannel channel;
