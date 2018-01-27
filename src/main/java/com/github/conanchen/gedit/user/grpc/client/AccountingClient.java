@@ -23,7 +23,7 @@ public class AccountingClient {
     private AccountingAccountApiGrpc.AccountingAccountApiStub accountingAccountApiStub;
     @PostConstruct
     public void init() {
-        channel = ManagedChannelBuilder.forAddress(uri,9985)
+        channel = ManagedChannelBuilder.forAddress(uri,9983)
                 .usePlaintext(true)
                 .build();
         accountingAccountApiStub = AccountingAccountApiGrpc.newStub(channel);
