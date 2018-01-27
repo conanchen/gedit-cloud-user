@@ -2,6 +2,7 @@ package com.github.conanchen.gedit.user.grpc;
 
 import com.github.conanchen.gedit.common.grpc.Status;
 import com.github.conanchen.gedit.user.auth.grpc.*;
+import com.github.conanchen.gedit.user.grpc.client.AccountingClient;
 import com.github.conanchen.gedit.user.grpc.interceptor.AuthInterceptor;
 import com.github.conanchen.gedit.user.grpc.interceptor.LogInterceptor;
 import com.github.conanchen.gedit.user.model.Login;
@@ -43,6 +44,8 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase {
     private MsgSend msgSend;
     @Autowired
     private LoginRepository loginRepository;
+    @Autowired
+    private AccountingClient accountingClient;
 
     @Override
     public void signinQQ(SigninQQRequest request, StreamObserver<SigninResponse> responseObserver) {
@@ -302,6 +305,7 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase {
             detail = "修改密码成功";
         }
         User savedUser = (User) userRepository.save(user);
+        accountingClient.upsesrtAccounts(user);
         //calc expire time
         Date date = expireDate();
         String compactJws = generate(savedUser.getUuid(), now, date);
