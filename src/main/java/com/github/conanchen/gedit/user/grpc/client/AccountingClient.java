@@ -31,13 +31,13 @@ public class AccountingClient {
                 .usePlaintext(true)
                 .build();
         accountingAccountApiStub = AccountingAccountApiGrpc.newStub(channel);
-        accountingAccountApiStub = MetadataUtils.attachHeaders(accountingAccountApiStub, AuthInterceptor.HEADERS.get());
     }
     public interface UpsesrtAccountsCallback{
         void onAccountResponse(AccountResponse response);
     }
 
     public void upsesrtAccounts(User user, UpsesrtAccountsCallback callback, GrpcApiCallback grpcApiCallback){
+        accountingAccountApiStub = MetadataUtils.attachHeaders(accountingAccountApiStub, AuthInterceptor.HEADERS.get());
         accountingAccountApiStub.upsertAccounts(UpsertAccountsRequest.newBuilder()
                 .setUserUuid(user.getUuid())
                 .build()
