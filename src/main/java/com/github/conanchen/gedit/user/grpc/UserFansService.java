@@ -120,7 +120,7 @@ public class UserFansService extends UserFansApiGrpc.UserFansApiImplBase {
     public void listMyFan(ListMyFanRequest request, StreamObserver<FanshipResponse> responseObserver) {
         try {
             Claims claims = AuthInterceptor.USER_CLAIMS.get();
-            List<FansShip> fansShips = fansShipRepository.findByActiveIsTrueAndParentUuidAAndUpdatedDate(claims.getSubject(),new Date(request.getLastUpdated()));
+            List<FansShip> fansShips = fansShipRepository.findByActiveIsTrueAndParentUuidAndUpdatedDate(claims.getSubject(),new Date(request.getLastUpdated()));
             int tempForm = 0;
             for (FansShip fansShip : fansShips){
                 responseObserver.onNext(modelToResponse(fansShip, tempForm++).build());
