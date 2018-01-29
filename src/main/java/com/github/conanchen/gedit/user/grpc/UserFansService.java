@@ -15,6 +15,7 @@ import io.jsonwebtoken.Claims;
 import org.lognet.springboot.grpc.GRpcService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.Date;
@@ -74,13 +75,21 @@ public class UserFansService extends UserFansApiGrpc.UserFansApiImplBase {
                     .isNotNullOrEmpty()
                     .value();
             FansShip fansShip = fansShipRepository.findByActiveIsTrueAndFanUuid(fanUuid);
-            builder = modelToResponse(fansShip,0);
+            if (fansShip == null){
+                builder = FanshipResponse.newBuilder()
+                    .setStatus(Status.newBuilder()
+                            .setCode(Status.Code.FAILED_PRECONDITION)
+                            .setDetails("不存在或未激活")
+                            .build());
+            }else{
+                builder = modelToResponse(fansShip,0);
+            }
         }catch (UncheckedValidationException e){
             builder = FanshipResponse.newBuilder()
-                    .setStatus(Status.newBuilder()
-                            .setCode(Status.Code.INVALID_ARGUMENT)
-                            .setDetails(e.getMessage())
-                            .build());
+                .setStatus(Status.newBuilder()
+                        .setCode(Status.Code.INVALID_ARGUMENT)
+                        .setDetails(e.getMessage())
+                        .build());
         }
         responseObserver.onNext(builder.build());
         responseObserver.onCompleted();
@@ -100,9 +109,21 @@ public class UserFansService extends UserFansApiGrpc.UserFansApiImplBase {
                     .isNotNullOrEmpty()
                     .value();
             List<FansShip> fansShips = fansShipRepository.findByActiveIsTrueAndParentUuid(parentUuid,pageable);
-            for (FansShip fansShip : fansShips){
-                responseObserver.onNext(modelToResponse(fansShip, tempForm++).build());
-                try { Thread.sleep(500); } catch (InterruptedException e) {}
+            if (CollectionUtils.isEmpty(fansShips)){
+                responseObserver.onNext(FanshipResponse.newBuilder()
+                        .setStatus(Status.newBuilder()
+                                .setCode(Status.Code.FAILED_PRECONDITION)
+                                .setDetails("不存在或未激活")
+                                .build())
+                        .build());
+            }else {
+                for (FansShip fansShip : fansShips) {
+                    responseObserver.onNext(modelToResponse(fansShip, tempForm++).build());
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                    }
+                }
             }
         }catch (UncheckedValidationException e){
             responseObserver.onNext(
@@ -121,10 +142,22 @@ public class UserFansService extends UserFansApiGrpc.UserFansApiImplBase {
         try {
             Claims claims = AuthInterceptor.USER_CLAIMS.get();
             List<FansShip> fansShips = fansShipRepository.findByActiveIsTrueAndParentUuidAndUpdatedDate(claims.getSubject(),new Date(request.getLastUpdated()));
-            int tempForm = 0;
-            for (FansShip fansShip : fansShips){
-                responseObserver.onNext(modelToResponse(fansShip, tempForm++).build());
-                try { Thread.sleep(500); } catch (InterruptedException e) {}
+            if (CollectionUtils.isEmpty(fansShips)){
+                responseObserver.onNext(FanshipResponse.newBuilder()
+                        .setStatus(Status.newBuilder()
+                                .setCode(Status.Code.FAILED_PRECONDITION)
+                                .setDetails("不存在或未激活")
+                                .build())
+                        .build());
+            }else {
+                int tempForm = 0;
+                for (FansShip fansShip : fansShips) {
+                    responseObserver.onNext(modelToResponse(fansShip, tempForm++).build());
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                    }
+                }
             }
         }catch (UncheckedValidationException e){
             responseObserver.onNext(
