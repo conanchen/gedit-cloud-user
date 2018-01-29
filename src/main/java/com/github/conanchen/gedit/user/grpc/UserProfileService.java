@@ -34,7 +34,15 @@ public class UserProfileService extends UserProfileApiGrpc.UserProfileApiImplBas
         try {
             String uuid = Hope.that(request.getUuid()).named("uuid").isNotNullOrEmpty().value();
             User user = (User) userRepository.findOne(uuid);
-            builder = modelToResponse(user);
+            if (user ==  null){
+                builder = UserProfileResponse.newBuilder()
+                        .setStatus(Status.newBuilder()
+                                .setCode(Status.Code.NOT_FOUND)
+                                .setDetails("user not found")
+                                .build());
+            }else {
+                builder = modelToResponse(user);
+            }
         }catch (UncheckedValidationException e){
             builder = UserProfileResponse.newBuilder()
                     .setStatus(Status.newBuilder()

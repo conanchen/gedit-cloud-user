@@ -14,7 +14,10 @@ import java.util.Date;
 public class User {
     @Id
     @GeneratedValue(generator = "uuid")
-    @GenericGenerator(name = "uuid", strategy = "uuid")
+    @GenericGenerator(
+            name = "uuid",
+            strategy = "com.github.conanchen.gedit.user.utils.database.CustomUUIDGenerator"
+    )
     @Column(columnDefinition = "char(32)")
     private String uuid;
 
