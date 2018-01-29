@@ -27,6 +27,8 @@ public class AuthInterceptor implements ServerInterceptor {
     private static final Metadata.Key<byte[]> EXTRA_AUTHORIZATION = Metadata.Key.of(
             "Extra-Authorization-bin", Metadata.BINARY_BYTE_MARSHALLER);
     public static final String AUTHENTICATION_SCHEME = "Bearer";
+    public static final Context.Key<Metadata> HEADERS
+            = Context.key("HEADERS");
     @Value("${jjwt.sigin.key:shuai}")
     private String signinKey;
 
@@ -50,7 +52,8 @@ public class AuthInterceptor implements ServerInterceptor {
             return new ServerCall.Listener() {
             };
         }
-        Context context = Context.current().withValue(USER_CLAIMS, identity);
+        Context context = Context.current().withValue(USER_CLAIMS, identity)
+                .withValue(HEADERS,headers);
         return Contexts.interceptCall(context, call, headers, next);
     }
 

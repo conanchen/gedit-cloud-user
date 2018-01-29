@@ -1,7 +1,9 @@
 package com.github.conanchen.gedit.user.grpc;
 
+import com.github.conanchen.gedit.accounting.account.grpc.AccountResponse;
 import com.github.conanchen.gedit.common.grpc.Status;
 import com.github.conanchen.gedit.user.auth.grpc.*;
+import com.github.conanchen.gedit.user.grpc.callback.GrpcApiCallback;
 import com.github.conanchen.gedit.user.grpc.client.AccountingClient;
 import com.github.conanchen.gedit.user.grpc.interceptor.AuthInterceptor;
 import com.github.conanchen.gedit.user.grpc.interceptor.LogInterceptor;
@@ -18,6 +20,7 @@ import io.grpc.stub.StreamObserver;
 import io.jsonwebtoken.CompressionCodecs;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.lognet.springboot.grpc.GRpcService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +30,7 @@ import org.springframework.dao.DuplicateKeyException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
-
+@Slf4j
 @GRpcService(applyGlobalInterceptors = false, interceptors = {LogInterceptor.class})
 public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase {
     @Value("${jjwt.expire.minutes:5}")
@@ -236,6 +239,7 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase {
                     .isNotNullOrEmpty()
                     .value();
             User user = userRepository.findByMobile(mobile);
+            upsesrtAccounts(user);
             if (user != null && !user.getActive()) {
                 Status status = Status.newBuilder()
                         .setCode(Status.Code.FAILED_PRECONDITION)
@@ -305,7 +309,6 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase {
             detail = "修改密码成功";
         }
         User savedUser = (User) userRepository.save(user);
-        accountingClient.upsesrtAccounts(user);
         //calc expire time
         Date date = expireDate();
         String compactJws = generate(savedUser.getUuid(), now, date);
@@ -344,5 +347,24 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase {
         Instant now = Instant.now();
         Instant expireDate = now.plus(Duration.ofMinutes(expiredInMinutes));
         return Date.from(expireDate);
+    }
+
+    private void upsesrtAccounts(User user){
+        accountingClient.upsesrtAccounts(user, (AccountResponse reponse) -> {
+            if (!reponse.getStatus().getCode().equals(Status.Code.OK)){
+               log.error("创建用户相关账户错误，{}",reponse.getStatus());
+            }
+        },new GrpcApiCallback() {
+            @Override
+            public void onGrpcApiError(Status status) {
+                log.error("创建用户相关账户错误，{}",status);
+            }
+
+            @Override
+            public void onGrpcApiCompleted() {
+                log.error("-------complete-----");
+            }
+        });
+
     }
 }
