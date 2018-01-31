@@ -37,7 +37,7 @@ public class AccountingClient {
     }
 
     public void upsesrtAccounts(User user, UpsesrtAccountsCallback callback, GrpcApiCallback grpcApiCallback){
-        accountingAccountApiStub = MetadataUtils.attachHeaders(accountingAccountApiStub, AuthInterceptor.HEADERS.get());
+        //accountingAccountApiStub = MetadataUtils.attachHeaders(accountingAccountApiStub, AuthInterceptor.HEADERS.get());
         accountingAccountApiStub.upsertAccounts(UpsertAccountsRequest.newBuilder()
                 .setUserUuid(user.getUuid())
                 .build()
