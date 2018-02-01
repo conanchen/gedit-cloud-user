@@ -308,7 +308,7 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase {
             detail = "修改密码成功";
         }
         User savedUser = (User) userRepository.save(user);
-        upsesrtAccounts(user);
+        upsesrtAccounts(savedUser);
         //calc expire time
         Date date = expireDate();
         String compactJws = generate(savedUser.getUuid(), now, date);
