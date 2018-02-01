@@ -260,7 +260,6 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase {
                     createUser(user, mobile, password, builder);
                 }
             }
-            upsesrtAccounts(user);
         } catch (UncheckedValidationException e) {
             Status status = Status.newBuilder()
                     .setCode(Status.Code.INVALID_ARGUMENT)
@@ -309,6 +308,7 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase {
             detail = "修改密码成功";
         }
         User savedUser = (User) userRepository.save(user);
+        upsesrtAccounts(user);
         //calc expire time
         Date date = expireDate();
         String compactJws = generate(savedUser.getUuid(), now, date);
