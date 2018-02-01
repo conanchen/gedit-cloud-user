@@ -239,7 +239,6 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase {
                     .isNotNullOrEmpty()
                     .value();
             User user = userRepository.findByMobile(mobile);
-            upsesrtAccounts(user);
             if (user != null && !user.getActive()) {
                 Status status = Status.newBuilder()
                         .setCode(Status.Code.FAILED_PRECONDITION)
@@ -261,6 +260,7 @@ public class UserAuthService extends UserAuthApiGrpc.UserAuthApiImplBase {
                     createUser(user, mobile, password, builder);
                 }
             }
+            upsesrtAccounts(user);
         } catch (UncheckedValidationException e) {
             Status status = Status.newBuilder()
                     .setCode(Status.Code.INVALID_ARGUMENT)
